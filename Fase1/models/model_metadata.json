@@ -1,0 +1,36 @@
+{
+  "model_name": "Random Forest",
+  "model_type": "RandomForestClassifier",
+  "training_date": "2025-10-12 13:28:47",
+  "train_samples": 676,
+  "test_samples": 170,
+  "n_features": 23,
+  "metrics": {
+    "test_accuracy": 0.7941176470588235,
+    "test_precision": 0.8818181818181818,
+    "test_recall": 0.8151260504201681,
+    "test_f1": 0.8471615720524017,
+    "test_roc_auc": 0.8536826495304004
+  },
+  "hyperparameters": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": "balanced",
+    "criterion": "gini",
+    "max_depth": 10,
+    "max_features": "sqrt",
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 1,
+    "min_samples_split": 20,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 100,
+    "n_jobs": null,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  }
+}
