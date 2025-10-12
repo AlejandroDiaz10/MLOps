@@ -1,36 +1,74 @@
 {
-  "model_name": "Random Forest",
-  "model_type": "RandomForestClassifier",
-  "training_date": "2025-10-12 13:28:47",
-  "train_samples": 676,
-  "test_samples": 170,
-  "n_features": 23,
-  "metrics": {
-    "test_accuracy": 0.7941176470588235,
-    "test_precision": 0.8818181818181818,
-    "test_recall": 0.8151260504201681,
-    "test_f1": 0.8471615720524017,
-    "test_roc_auc": 0.8536826495304004
+  "model_selection": {
+    "selected_model": "Logistic Regression",
+    "selection_criteria": "AUC-ROC > 0.75, then Interpretability > Performance",
+    "models_evaluated": [
+      "Logistic Regression",
+      "Decision Tree",
+      "Random Forest"
+    ],
+    "models_meeting_threshold": [
+      "Logistic Regression",
+      "Random Forest"
+    ]
   },
-  "hyperparameters": {
-    "bootstrap": true,
-    "ccp_alpha": 0.0,
-    "class_weight": "balanced",
-    "criterion": "gini",
-    "max_depth": 10,
-    "max_features": "sqrt",
-    "max_leaf_nodes": null,
-    "max_samples": null,
-    "min_impurity_decrease": 0.0,
-    "min_samples_leaf": 1,
-    "min_samples_split": 20,
-    "min_weight_fraction_leaf": 0.0,
-    "monotonic_cst": null,
-    "n_estimators": 100,
-    "n_jobs": null,
-    "oob_score": false,
-    "random_state": 42,
-    "verbose": 0,
-    "warm_start": false
+  "model_details": {
+    "model_type": "LogisticRegression",
+    "hyperparameters": {
+      "C": 0.1,
+      "class_weight": "balanced",
+      "dual": false,
+      "fit_intercept": true,
+      "intercept_scaling": 1,
+      "l1_ratio": null,
+      "max_iter": 1000,
+      "multi_class": "deprecated",
+      "n_jobs": null,
+      "penalty": "l2",
+      "random_state": 42,
+      "solver": "lbfgs",
+      "tol": 0.0001,
+      "verbose": 0,
+      "warm_start": false
+    },
+    "training_date": "2025-10-12 14:13:19"
+  },
+  "dataset_info": {
+    "train_samples": 676,
+    "test_samples": 170,
+    "n_features": 23,
+    "class_distribution_train": {
+      "class_0": 205,
+      "class_1": 471
+    }
+  },
+  "performance_metrics": {
+    "cross_validation": {
+      "auc_roc_mean": NaN,
+      "auc_roc_std": NaN,
+      "n_folds": 5
+    },
+    "test_set": {
+      "accuracy": 0.7176470588235294,
+      "precision": 0.898876404494382,
+      "recall": 0.6722689075630253,
+      "f1_score": 0.7692307692307693,
+      "auc_roc": 0.8447849728126545
+    },
+    "confusion_matrix": {
+      "true_negatives": 42,
+      "false_positives": 9,
+      "false_negatives": 39,
+      "true_positives": 80
+    }
+  },
+  "ml_canvas_compliance": {
+    "primary_metric": "AUC-ROC",
+    "threshold_met": true,
+    "threshold_value": 0.75,
+    "achieved_value": 0.8447849728126545,
+    "validation_strategy": "5-fold stratified cross-validation",
+    "hyperparameter_tuning": "Grid Search (reduced space)",
+    "priority": "Interpretability > Performance"
   }
 }
