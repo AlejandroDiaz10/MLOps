@@ -1,0 +1,48 @@
+{
+  "model_name": "random_forest",
+  "model_type": "RandomForestClassifier",
+  "hyperparameters": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": null,
+    "criterion": "gini",
+    "max_depth": 10,
+    "max_features": "sqrt",
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 2,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 100,
+    "n_jobs": null,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "training_date": "2025-10-26 22:08:55",
+  "dataset_info": {
+    "n_samples": 551,
+    "n_features": 20,
+    "class_distribution": {
+      "class_0": 146,
+      "class_1": 405
+    }
+  },
+  "cross_validation": {
+    "cv_folds": 5,
+    "auc_scores": [
+      0.7744855967078189,
+      0.7679863771817795,
+      0.8190719455087272,
+      0.816943380161771,
+      0.8229033631332483
+    ],
+    "auc_mean": 0.8002781325386691,
+    "auc_std": 0.023878238261503332
+  },
+  "meets_threshold": true,
+  "threshold": 0.75
+}
