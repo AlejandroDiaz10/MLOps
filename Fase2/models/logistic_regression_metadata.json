@@ -18,7 +18,7 @@
     "verbose": 0,
     "warm_start": false
   },
-  "training_date": "2025-10-26 22:09:06",
+  "training_date": "2025-10-27 18:00:26",
   "dataset_info": {
     "n_samples": 551,
     "n_features": 20,
@@ -26,6 +26,15 @@
       "class_0": 146,
       "class_1": 405
     }
+  },
+  "grid_search": {
+    "best_params": {
+      "C": 0.01,
+      "penalty": "l2",
+      "solver": "lbfgs"
+    },
+    "best_score": 0.7849581382148433,
+    "n_splits": 5
   },
   "cross_validation": {
     "cv_folds": 5,
@@ -37,8 +46,8 @@
       0.794806300553427
     ],
     "auc_mean": 0.7849581382148433,
-    "auc_std": 0.03103894330889659
-  },
-  "meets_threshold": true,
-  "threshold": 0.75
+    "auc_std": 0.03103894330889659,
+    "meets_threshold": true,
+    "threshold": 0.75
+  }
 }

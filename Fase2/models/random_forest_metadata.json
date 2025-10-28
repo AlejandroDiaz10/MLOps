@@ -22,7 +22,7 @@
     "verbose": 0,
     "warm_start": false
   },
-  "training_date": "2025-10-26 22:08:55",
+  "training_date": "2025-10-27 18:00:25",
   "dataset_info": {
     "n_samples": 551,
     "n_features": 20,
@@ -30,6 +30,16 @@
       "class_0": 146,
       "class_1": 405
     }
+  },
+  "grid_search": {
+    "best_params": {
+      "max_depth": 10,
+      "min_samples_leaf": 2,
+      "min_samples_split": 2,
+      "n_estimators": 100
+    },
+    "best_score": 0.8002781325386691,
+    "n_splits": 5
   },
   "cross_validation": {
     "cv_folds": 5,
@@ -41,8 +51,8 @@
       0.8229033631332483
     ],
     "auc_mean": 0.8002781325386691,
-    "auc_std": 0.023878238261503332
-  },
-  "meets_threshold": true,
-  "threshold": 0.75
+    "auc_std": 0.023878238261503332,
+    "meets_threshold": true,
+    "threshold": 0.75
+  }
 }
