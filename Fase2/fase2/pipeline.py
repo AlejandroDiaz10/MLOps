@@ -6,6 +6,8 @@ Implements the Template Method pattern.
 from pathlib import Path
 from typing import Optional, Dict
 from loguru import logger
+import pandas as pd
+import numpy as np
 
 from fase2.config import config
 from fase2.core.data_processor import DataProcessor
@@ -717,3 +719,370 @@ class MLPipeline:
         logger.success(f"✓ Generated {len(figures)} comparison plots")
 
         return figures
+
+    def run_sklearn_pipeline_training(
+        self,
+        model_name: str = "random_forest",
+        param_grid: Optional[Dict] = None,
+        use_grid_search: bool = True,
+        cv_folds: Optional[int] = None,
+    ) -> Path:
+        """
+        Train model using scikit-learn Pipeline (BEST PRACTICE).
+
+        This method uses sklearn's Pipeline to automate:
+        - Preprocessing (imputation, scaling)
+        - Feature transformation
+        - Model training
+        - Hyperparameter tuning (GridSearchCV)
+
+        Args:
+            model_name: Name of model to train
+            param_grid: Optional custom parameter grid
+            use_grid_search: Whether to use GridSearchCV
+            cv_folds: Number of CV folds
+
+        Returns:
+            Path to saved pipeline
+        """
+        from fase2.pipeline_builder import PipelineBuilder
+        import joblib
+        import json
+
+        logger.info("=" * 70)
+        logger.info(f"STEP 3: SKLEARN PIPELINE TRAINING - {model_name.upper()}")
+        logger.info("=" * 70)
+
+        # Load data
+        logger.info("Loading processed data...")
+        X_train_path = self.config.paths.processed_data_dir / "X_train.csv"
+        y_train_path = self.config.paths.processed_data_dir / "y_train.csv"
+
+        X_train = pd.read_csv(X_train_path)
+        y_train = pd.read_csv(y_train_path).values.ravel()
+
+        logger.success(f"✓ Data loaded: {X_train.shape}")
+
+        # Build pipeline
+        logger.info(f"\nBuilding sklearn Pipeline...")
+        builder = PipelineBuilder(self.config)
+
+        if use_grid_search:
+            pipeline = builder.build_grid_search_pipeline(
+                model_name=model_name,
+                param_grid=param_grid,
+                cv_folds=cv_folds or self.config.model.cv_folds,
+            )
+
+            # Display pipeline structure
+            if hasattr(pipeline.estimator, "steps"):
+                logger.info("\n📋 Pipeline Steps:")
+                steps_df = builder.get_pipeline_steps(pipeline.estimator)
+                print(steps_df.to_string(index=False))
+        else:
+            pipeline = builder.build_pipeline(model_name)
+
+        # Train
+        logger.info(f"\nTraining pipeline...")
+        pipeline.fit(X_train, y_train)
+
+        # Get results
+        if use_grid_search:
+            logger.success("\n" + "=" * 70)
+            logger.success("✓ PIPELINE TRAINING COMPLETE")
+            logger.success(f"  Best CV AUC Score: {pipeline.best_score_:.4f}")
+            logger.success(f"  Best Parameters: {pipeline.best_params_}")
+            logger.success("=" * 70)
+
+            best_pipeline = pipeline.best_estimator_
+            cv_results = {
+                "best_score": float(pipeline.best_score_),
+                "best_params": pipeline.best_params_,
+                "cv_results": {
+                    "mean_test_score": pipeline.cv_results_["mean_test_score"].tolist(),
+                    "std_test_score": pipeline.cv_results_["std_test_score"].tolist(),
+                    "params": [str(p) for p in pipeline.cv_results_["params"]],
+                },
+            }
+        else:
+            logger.success("✓ Pipeline training complete")
+            best_pipeline = pipeline
+            cv_results = None
+
+        # Save pipeline
+        output_dir = self.config.paths.models_dir
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        safe_name = model_name.replace(" ", "_").lower()
+        pipeline_path = output_dir / f"{safe_name}_pipeline.pkl"
+
+        joblib.dump(best_pipeline, pipeline_path)
+        logger.success(f"✓ Pipeline saved to: {pipeline_path}")
+
+        # Save metadata
+        metadata = {
+            "model_name": model_name,
+            "pipeline_type": "sklearn_pipeline",
+            "model_type": type(best_pipeline.named_steps["model"]).__name__,
+            "training_date": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "dataset_info": {
+                "n_samples": int(len(X_train)),
+                "n_features": int(X_train.shape[1]),
+                "class_distribution": {
+                    "class_0": int((y_train == 0).sum()),
+                    "class_1": int((y_train == 1).sum()),
+                },
+            },
+            "pipeline_steps": [
+                {"name": name, "transformer": type(transformer).__name__}
+                for name, transformer in best_pipeline.steps
+            ],
+        }
+
+        if cv_results:
+            metadata["grid_search"] = cv_results
+
+        metadata_path = output_dir / f"{safe_name}_pipeline_metadata.json"
+        with open(metadata_path, "w") as f:
+            json.dump(metadata, f, indent=2)
+
+        logger.success(f"✓ Metadata saved to: {metadata_path}")
+        logger.success("=" * 70)
+
+        return pipeline_path
+
+    def run_sklearn_pipeline_evaluation(
+        self, pipeline_path: Optional[Path] = None, save_results: bool = True
+    ) -> Dict:
+        """
+        Evaluate sklearn Pipeline on test set.
+
+        Args:
+            pipeline_path: Path to saved pipeline
+            save_results: Whether to save predictions and metrics
+
+        Returns:
+            Dictionary with evaluation metrics
+        """
+        import joblib
+        from sklearn.metrics import (
+            accuracy_score,
+            precision_score,
+            recall_score,
+            f1_score,
+            roc_auc_score,
+            confusion_matrix,
+            classification_report,
+        )
+
+        logger.info("=" * 70)
+        logger.info("STEP 4: SKLEARN PIPELINE EVALUATION")
+        logger.info("=" * 70)
+
+        # Load pipeline
+        if pipeline_path is None:
+            pipeline_path = self.config.paths.models_dir / "random_forest_pipeline.pkl"
+
+        logger.info(f"Loading pipeline from: {pipeline_path}")
+        pipeline = joblib.load(pipeline_path)
+
+        # Load test data
+        X_test_path = self.config.paths.processed_data_dir / "X_test.csv"
+        y_test_path = self.config.paths.processed_data_dir / "y_test.csv"
+
+        X_test = pd.read_csv(X_test_path)
+        y_test = pd.read_csv(y_test_path).values.ravel()
+
+        logger.success(f"✓ Test data loaded: {X_test.shape}")
+
+        # Make predictions
+        logger.info("\nMaking predictions...")
+        y_pred = pipeline.predict(X_test)
+        y_proba = (
+            pipeline.predict_proba(X_test)[:, 1]
+            if hasattr(pipeline, "predict_proba")
+            else None
+        )
+
+        # Calculate metrics
+        metrics = {
+            "accuracy": float(accuracy_score(y_test, y_pred)),
+            "precision": float(precision_score(y_test, y_pred)),
+            "recall": float(recall_score(y_test, y_pred)),
+            "f1_score": float(f1_score(y_test, y_pred)),
+            "confusion_matrix": confusion_matrix(y_test, y_pred).tolist(),
+        }
+
+        if y_proba is not None:
+            metrics["auc_roc"] = float(roc_auc_score(y_test, y_proba))
+
+        # Display results
+        logger.success("\n✓ Model evaluation complete:")
+        logger.info(f"  Accuracy:  {metrics['accuracy']:.4f}")
+        logger.info(f"  Precision: {metrics['precision']:.4f}")
+        logger.info(f"  Recall:    {metrics['recall']:.4f}")
+        logger.info(f"  F1 Score:  {metrics['f1_score']:.4f}")
+        if metrics.get("auc_roc"):
+            logger.info(f"  AUC-ROC:   {metrics['auc_roc']:.4f}")
+
+        # Classification report
+        logger.info("\n" + "=" * 60)
+        logger.info("CLASSIFICATION REPORT")
+        logger.info("=" * 60)
+        report = classification_report(
+            y_test, y_pred, target_names=["Bad Credit (0)", "Good Credit (1)"]
+        )
+        print(report)
+
+        # Save results
+        if save_results:
+            output_dir = self.config.paths.processed_data_dir
+
+            # Save predictions
+            predictions_df = pd.DataFrame(
+                {"true_label": y_test, "predicted_label": y_pred}
+            )
+            if y_proba is not None:
+                predictions_df["probability"] = y_proba
+
+            pred_path = output_dir / "test_predictions_pipeline.csv"
+            predictions_df.to_csv(pred_path, index=False)
+            logger.success(f"✓ Predictions saved to: {pred_path}")
+
+            # Save metrics
+            import json
+
+            metrics_path = output_dir / "test_metrics_pipeline.json"
+            with open(metrics_path, "w") as f:
+                json.dump(metrics, f, indent=2)
+            logger.success(f"✓ Metrics saved to: {metrics_path}")
+
+        logger.success("=" * 70)
+
+        return metrics
+
+    def run_full_sklearn_pipeline(
+        self,
+        model_name: str = "random_forest",
+        skip_data_prep: bool = False,
+        skip_feature_eng: bool = False,
+        generate_plots: bool = True,
+    ) -> Dict:
+        """
+        Run complete ML workflow using sklearn Pipelines (BEST PRACTICE).
+
+        This method demonstrates industry best practices:
+        - Automated preprocessing with sklearn Pipeline
+        - No data leakage (fit only on train)
+        - Hyperparameter tuning with GridSearchCV
+        - Single serializable object (.pkl)
+        - Reproducible workflow
+
+        Args:
+            model_name: Name of model to train
+            skip_data_prep: Skip data preparation
+            skip_feature_eng: Skip feature engineering
+            generate_plots: Generate visualizations
+
+        Returns:
+            Dictionary with pipeline results
+        """
+        logger.info("\n")
+        logger.info("🚀" * 35)
+        logger.info("🚀  SKLEARN PIPELINE - BEST PRACTICES WORKFLOW")
+        logger.info("🚀" * 35)
+        logger.info("\n")
+
+        results = {}
+
+        try:
+            # Step 1: Data Preparation (if needed)
+            if not skip_data_prep:
+                cleaned_path = self.run_data_preparation()
+                results["cleaned_data_path"] = cleaned_path
+            else:
+                logger.info("⏭️  Skipping data preparation")
+
+            # Step 2: Feature Engineering (if needed)
+            if not skip_feature_eng:
+                feature_paths = self.run_feature_engineering()
+                results["feature_paths"] = feature_paths
+            else:
+                logger.info("⏭️  Skipping feature engineering")
+
+            # Step 3: Train with sklearn Pipeline
+            pipeline_path = self.run_sklearn_pipeline_training(model_name)
+            results["pipeline_path"] = pipeline_path
+
+            # Step 4: Evaluate Pipeline
+            metrics = self.run_sklearn_pipeline_evaluation(pipeline_path)
+            results["metrics"] = metrics
+
+            # Step 5: Generate Visualizations (optional)
+            if generate_plots:
+                # Use the pipeline to get predictions for plotting
+                import joblib
+
+                pipeline = joblib.load(pipeline_path)
+
+                X_test_path = self.config.paths.processed_data_dir / "X_test.csv"
+                y_test_path = self.config.paths.processed_data_dir / "y_test.csv"
+                X_test = pd.read_csv(X_test_path)
+                y_test = pd.read_csv(y_test_path).values.ravel()
+
+                y_pred = pipeline.predict(X_test)
+                y_proba = (
+                    pipeline.predict_proba(X_test)[:, 1]
+                    if hasattr(pipeline, "predict_proba")
+                    else None
+                )
+
+                # Generate plots
+                from fase2.plots import plot_confusion_matrix, plot_roc_curve
+                from sklearn.metrics import confusion_matrix
+
+                figures = {}
+
+                # Confusion matrix
+                cm = confusion_matrix(y_test, y_pred)
+                figures["confusion_matrix"] = plot_confusion_matrix(
+                    cm, f"{model_name} (Pipeline)"
+                )
+
+                # ROC curve
+                if y_proba is not None:
+                    figures["roc_curve"] = plot_roc_curve(
+                        y_test, y_proba, f"{model_name} (Pipeline)"
+                    )
+
+                results["figures"] = figures
+
+            # Final summary
+            logger.info("\n")
+            logger.info("🎉" * 35)
+            logger.info("🎉  SKLEARN PIPELINE COMPLETED SUCCESSFULLY!")
+            logger.info("🎉" * 35)
+            logger.info("\n")
+            logger.info("📊 Pipeline Summary:")
+            logger.info(f"  Model: {model_name}")
+            logger.info(f"  Pipeline Type: sklearn.pipeline.Pipeline")
+            logger.info(f"  Test Accuracy: {metrics['accuracy']:.4f}")
+            logger.info(f"  Test AUC-ROC: {metrics.get('auc_roc', 'N/A')}")
+            logger.info(f"  Pipeline saved: {pipeline_path}")
+            logger.info("\n")
+            logger.info("✅ Best Practices Applied:")
+            logger.info("  ✓ Single serializable pipeline object")
+            logger.info("  ✓ Automated preprocessing")
+            logger.info("  ✓ No data leakage (fit only on train)")
+            logger.info("  ✓ Hyperparameter tuning with GridSearchCV")
+            logger.info("  ✓ Reproducible workflow")
+            logger.info("\n")
+
+            return results
+
+        except Exception as e:
+            logger.error("\n")
+            logger.error("❌" * 35)
+            logger.error(f"❌  PIPELINE FAILED: {str(e)}")
+            logger.error("❌" * 35)
+            raise PipelineError(f"Pipeline execution failed: {str(e)}")

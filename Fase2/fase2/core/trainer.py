@@ -78,16 +78,18 @@ class ModelTrainer:
         model_name: str,
         param_grid: Optional[Dict] = None,
         cv_folds: Optional[int] = None,
+        use_pipeline: bool = True,  # 🆕 Nuevo parámetro
         n_jobs: int = -1,
         verbose: int = 1,
     ) -> "ModelTrainer":
         """
-        Train model with GridSearchCV for hyperparameter tuning
+        Train model with optional pipeline and GridSearchCV.
 
         Args:
             model_name: Name of model to train
             param_grid: Custom parameter grid (uses default if None)
             cv_folds: Number of CV folds (uses config if None)
+            use_pipeline: Whether to use sklearn Pipeline (recommended)
             n_jobs: Number of parallel jobs
             verbose: Verbosity level for GridSearchCV
 
@@ -101,28 +103,49 @@ class ModelTrainer:
         cv_folds = cv_folds or self.config.model.cv_folds
 
         logger.info("=" * 60)
-        logger.info(f"Training {model_name.upper()} with GridSearchCV")
+        logger.info(f"Training {model_name.upper()}")
+        if use_pipeline:
+            logger.info("Using scikit-learn Pipeline ✅")
         logger.info("=" * 60)
 
-        # Create base model
-        base_model = self.factory.create_model(model_name)
+        if use_pipeline:
+            # 🆕 Use PipelineBuilder
+            from fase2.pipeline_builder import PipelineBuilder
 
-        # Get parameter grid
-        param_grid = self.factory.get_param_grid(model_name, param_grid)
-        logger.info(f"Parameter grid: {param_grid}")
+            builder = PipelineBuilder(self.config)
+
+            # Build GridSearchCV pipeline
+            self.grid_search = builder.build_grid_search_pipeline(
+                model_name=model_name,
+                param_grid=param_grid,
+                cv_folds=cv_folds,
+                n_jobs=n_jobs,
+            )
+
+            # Display pipeline steps
+            if hasattr(self.grid_search.estimator, "steps"):
+                steps_df = builder.get_pipeline_steps(self.grid_search.estimator)
+                logger.info("\n📋 Pipeline Steps:")
+                print(steps_df.to_string(index=False))
+
+        else:
+            # Original approach (no pipeline)
+            base_model = self.factory.create_model(model_name)
+            param_grid = self.factory.get_param_grid(model_name, param_grid)
+
+            self.grid_search = GridSearchCV(
+                base_model,
+                param_grid,
+                cv=cv_folds,
+                scoring="roc_auc",
+                n_jobs=n_jobs,
+                verbose=verbose,
+            )
+
         logger.info(f"Cross-validation folds: {cv_folds}")
+        logger.info("Starting training...")
 
-        # GridSearchCV
-        self.grid_search = GridSearchCV(
-            base_model,
-            param_grid,
-            cv=cv_folds,
-            scoring="roc_auc",
-            n_jobs=n_jobs,
-            verbose=verbose,
-        )
-
-        logger.info("Starting grid search...")
+        # Fit
         self.grid_search.fit(self.X_train, self.y_train)
 
         # Get best model

@@ -13,36 +13,48 @@ Proyecto académico de Machine Learning para predecir riesgo crediticio utilizan
 
 ## 📋 Tabla de Contenidos
 
+- [Estado del Proyecto](#estado-del-proyecto)
 - [Descripción del Proyecto](#descripción-del-proyecto)
 - [Arquitectura](#arquitectura)
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [Instalación](#instalación)
-- [Uso](#uso)
-  - [Opción 1: Pipeline Completo](#opción-1-pipeline-completo-recomendado)
-  - [Opción 2: Paso por Paso](#opción-2-paso-por-paso)
-  - [Opción 3: Comparar Modelos](#opción-3-comparar-múltiples-modelos)
-  - [Opción 4: Uso Programático](#opción-4-uso-programático)
-- [Visualizaciones](#visualizaciones)
-- [Notebooks Interactivos](#notebooks-interactivos)
+- [Uso Rápido](#uso-rápido)
+- [Etapas Completadas](#etapas-completadas)
+  - [Etapa 1: Estructura del Proyecto](#etapa-1-estructura-del-proyecto)
+  - [Etapa 2: Refactorización OOP](#etapa-2-refactorización-oop)
+  - [Etapa 3: sklearn Pipeline](#etapa-3-sklearn-pipeline-best-practices)
+- [Próximos Pasos](#próximos-pasos-etapa-4)
+- [Guías Detalladas](#guías-detalladas)
 - [Tecnologías](#tecnologías)
-- [Aprendizajes Clave](#aprendizajes-clave)
+
+---
+
+## 🎯 Estado del Proyecto
+
+| Etapa | Estado | Descripción |
+|-------|--------|-------------|
+| **1. Estructura** | ✅ Completa | Cookiecutter Data Science + Setup inicial |
+| **2. Refactorización OOP** | ✅ Completa | Código modular con clases y design patterns |
+| **3. sklearn Pipeline** | ✅ Completa | Pipeline automatizado con best practices |
+| **4. MLflow/DVC** | ⏳ Pendiente | Tracking de experimentos y versionamiento |
+
+**Versión actual:** `v3.0.0`
 
 ---
 
 ## 🎯 Descripción del Proyecto
 
-Este proyecto implementa un sistema de predicción de riesgo crediticio utilizando el dataset **German Credit**. El objetivo es clasificar clientes como "buen crédito" (1) o "mal crédito" (0) basándose en características demográficas y financieras.
+Sistema de predicción de riesgo crediticio que clasifica clientes como "buen crédito" (1) o "mal crédito" (0) utilizando el dataset **German Credit** de UCI.
 
-**Características principales:**
+**Características implementadas:**
 - ✅ Arquitectura orientada a objetos (OOP)
 - ✅ Pipeline de ML completo y modular
-- ✅ Estructura estandarizada con Cookiecutter Data Science
+- ✅ Sklearn Pipeline con GridSearchCV
 - ✅ Configuración validada con Pydantic
 - ✅ Method chaining para API limpia
 - ✅ Exception handling robusto
 - ✅ Visualizaciones automáticas
-- ✅ Código reutilizable y mantenible
-- ✅ Backward compatibility con código funcional
+- ✅ Backward compatibility
 
 **Métrica objetivo:** AUC-ROC ≥ 0.75
 
@@ -50,261 +62,249 @@ Este proyecto implementa un sistema de predicción de riesgo crediticio utilizan
 
 ## 🏗️ Arquitectura
 
-El proyecto implementa una **arquitectura en capas** con separación de responsabilidades:
+### **Arquitectura en Capas**
 ```
 ┌─────────────────────────────────────────────┐
-│  CAPA 1: CLI / Scripts                      │  ← Interfaz de usuario
-│  (run_pipeline.py, dataset.py, etc.)        │
+│  CAPA 1: CLI / Scripts                      │  ← run_pipeline.py, dataset.py
 ├─────────────────────────────────────────────┤
-│  CAPA 2: Pipeline Orchestrator              │  ← Coordinación
-│  (MLPipeline)                               │
+│  CAPA 2: Pipeline Orchestrator              │  ← MLPipeline (facade)
 ├─────────────────────────────────────────────┤
-│  CAPA 3: Core Business Logic (OOP)          │  ← Lógica principal
-│  (DataProcessor, FeatureEngineer,           │
-│   ModelTrainer, ModelEvaluator)             │
+│  CAPA 3: Core Business Logic (OOP)          │  ← DataProcessor, FeatureEngineer, ModelTrainer, PipelineBuilder
+│         + sklearn Pipeline                  │     
 ├─────────────────────────────────────────────┤
-│  CAPA 4: Outputs & Artifacts                │  ← Resultados
-│  (models/, reports/, data/processed/)       │
+│  CAPA 4: Artifacts & Outputs                │  ← models/, reports/, data/
 └─────────────────────────────────────────────┘
 ```
 
-### **Clases Principales**
+### **Flujo de Datos**
+```mermaid
+graph LR
+    A[Raw Data] --> B[DataProcessor]
+    B --> C[Cleaned Data]
+    C --> D[FeatureEngineer]
+    D --> E[Train/Test Split]
+    E --> F[sklearn Pipeline]
+    F --> G[Trained Model]
+    G --> H[Predictions]
+    H --> I[Metrics & Plots]
+```
 
-| Clase | Responsabilidad | Patrón |
-|-------|----------------|--------|
-| `DataProcessor` | Limpieza y validación de datos | Method Chaining |
-| `FeatureEngineer` | Ingeniería de características | Method Chaining |
-| `ModelTrainer` | Entrenamiento con GridSearchCV | Template Method |
-| `ModelEvaluator` | Evaluación y predicción | - |
+### **Componentes Principales**
+
+| Componente | Responsabilidad | Patrón |
+|------------|----------------|--------|
+| `DataProcessor` | Limpieza y validación | Method Chaining |
+| `FeatureEngineer` | Feature engineering | Method Chaining |
+| `ModelTrainer` | Entrenamiento | Template Method |
+| `ModelEvaluator` | Evaluación | - |
 | `ModelFactory` | Creación de modelos | Factory Pattern |
-| `MLPipeline` | Orquestación del workflow | Facade Pattern |
-
-### **Backward Compatibility**
-
-El proyecto mantiene **dos APIs simultáneas** para máxima flexibilidad:
-
-**API Funcional (Legacy):**
-```python
-from fase2.config import RAW_DATA_DIR, TARGET_COL
-from fase2.dataset import load_raw_data
-```
-
-**API Orientada a Objetos (Recomendada):**
-```python
-from fase2.config import config
-from fase2.core.data_processor import DataProcessor
-```
-
-Ambas APIs coexisten sin conflictos, permitiendo:
-- ✅ Notebooks antiguos siguen funcionando
-- ✅ Nuevo código usa OOP
-- ✅ Migración gradual sin romper funcionalidad
+| `PipelineBuilder` | Construcción de sklearn Pipeline | Builder Pattern |
+| `MLPipeline` | Orquestación | Facade Pattern |
 
 ---
 
 ## 📁 Estructura del Proyecto
 ```
 Fase2/
-├── LICENSE
-├── README.md
-├── pyproject.toml
-├── requirements.txt
-├── run_pipeline.py          # 🆕 Script principal
+├── README.md                    # Este archivo
+├── requirements.txt             # Dependencias
+├── pyproject.toml              # Configuración del proyecto
+├── run_pipeline.py             # 🎯 Script principal (EMPEZAR AQUÍ)
 │
 ├── data/
-│   ├── raw/                 # Datos originales (inmutables)
-│   ├── interim/             # Datos limpiados
-│   ├── processed/           # Datos finales para modelado
+│   ├── raw/                    # Datos originales (inmutables)
+│   │   └── german_credit_modified.csv
+│   ├── interim/                # Datos limpiados
+│   │   └── german_credit_cleaned.csv
+│   ├── processed/              # Datos finales para ML
+│   │   ├── X_train.csv
+│   │   ├── X_test.csv
+│   │   ├── y_train.csv
+│   │   └── y_test.csv
 │   └── external/
 │
-├── models/                  # Modelos (.pkl) y metadata (.json)
+├── models/                     # Modelos entrenados (.pkl)
+│   ├── random_forest_pipeline.pkl
+│   ├── random_forest_pipeline_metadata.json
+│   └── ...
 │
-├── notebooks/               # Análisis exploratorio
+├── notebooks/                  # Análisis interactivo
 │   ├── 1.0-t34-data-exploration.ipynb
 │   ├── 2.0-t34-feature-engineering.ipynb
-│   └── 3.0-t34-model-training.ipynb
+│   ├── 3.0-t34-model-training.ipynb
+│   └── 4.0-t34-sklearn-pipeline-best-practices.ipynb  
 │
 ├── reports/
-│   └── figures/             # Visualizaciones generadas
+│   └── figures/                # Visualizaciones
+│       ├── confusion_matrix_*.png
+│       ├── roc_curve_*.png
+│       └── model_comparison.png
 │
-└── fase2/                   # 🆕 Código fuente (OOP)
-    ├── config.py            # Configuración con Pydantic
-    ├── exceptions.py        # Custom exceptions
-    ├── pipeline.py          # MLPipeline orchestrator
-    ├── plots.py             # Funciones de visualización
+├── docs/                       # Documentación adicional
+│   └── SKLEARN_PIPELINE_GUIDE.md
+│
+└── fase2/                      # 📦 Código fuente (paquete Python)
+    ├── __init__.py
+    ├── config.py               # Configuración con Pydantic
+    ├── exceptions.py           # Custom exceptions
+    ├── pipeline.py             # MLPipeline orchestrator
+    ├── plots.py                # Funciones de visualización
+    ├── transformers.py         # Custom sklearn transformers
+    ├── pipeline_builder.py     # Construcción de sklearn Pipeline
+    ├── demo_pipeline.py        # Script de demostración
     │
-    ├── core/                # Lógica de negocio
+    ├── core/                   # Lógica de negocio (OOP)
     │   ├── data_processor.py
     │   ├── feature_engineer.py
     │   ├── model_factory.py
     │   ├── trainer.py
     │   └── evaluator.py
     │
-    ├── utils/               # Utilidades
+    ├── utils/                  # Utilidades
     │   ├── logger.py
     │   └── validators.py
     │
-    ├── dataset.py           # CLI para limpieza (wrapper)
-    ├── features.py          # CLI para features (wrapper)
+    ├── dataset.py              # CLI para limpieza
+    ├── features.py             # CLI para features
     └── modeling/
-        ├── train.py         # CLI para entrenamiento (wrapper)
-        └── predict.py       # CLI para predicción (wrapper)
+        ├── train.py            # CLI para entrenamiento
+        └── predict.py          # CLI para predicción
 ```
 
 ---
 
 ## 🚀 Instalación
 
-### Prerrequisitos
+### **1. Prerrequisitos**
 
 - Python 3.12.1+
 - pip
 - virtualenv (recomendado)
+- Git
 
-### Pasos
+### **2. Setup Completo**
 ```bash
-# 1. Clonar repositorio
+# Clonar repositorio
 git clone https://github.com/AlejandroDiaz10/MLOps
 cd Fase2
 
-# 2. Crear entorno virtual
+# Crear entorno virtual
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-# 3. Instalar dependencias
+# Instalar dependencias
 pip install -r requirements.txt
 
-# 4. Instalar paquete en modo desarrollo
+# Instalar paquete en modo desarrollo
 pip install -e .
 
-# 5. Verificar instalación
-python -c "from fase2 import config; print('✓ Installation successful')"
+# Verificar instalación
+python -c "from fase2 import config; print('✅ Installation successful')"
+```
+
+### **3. Verificar Estructura**
+```bash
+# Ver estructura de directorios
+tree -L 2  # Linux/Mac
+# o
+ls -R      # Alternativa
+
+# Verificar que existen los datos raw
+ls data/raw/german_credit_modified.csv
 ```
 
 ---
 
-## 💻 Uso
+## ⚡ Uso Rápido
 
-### **Opción 1: Pipeline Completo** (Recomendado) 🚀
-
-Ejecuta el workflow completo con un comando:
+### **Opción 1: Pipeline Completo con sklearn (Recomendado)**
 ```bash
-# Pipeline completo: limpieza → features → entrenamiento → evaluación → plots
-python run_pipeline.py full
+# Ejecutar TODO el pipeline de ML
+python run_pipeline.py sklearn
 ```
 
-**Con opciones:**
-```bash
-# Modelo específico
-python run_pipeline.py full --model-name logistic_regression
+**Esto ejecuta automáticamente:**
+1. ✅ Data preparation → `data/interim/german_credit_cleaned.csv`
+2. ✅ Feature engineering → `data/processed/X_train.csv`, etc.
+3. ✅ sklearn Pipeline training con GridSearchCV
+4. ✅ Evaluación en test set
+5. ✅ Generación de visualizaciones
 
-# Saltar pasos ya completados
-python run_pipeline.py full --skip-data-prep --skip-feature-eng
+**Archivos generados:**
+```
+models/
+└── random_forest_pipeline.pkl              # Pipeline completo
+└── random_forest_pipeline_metadata.json    # Metadata
+
+data/processed/
+└── test_predictions_pipeline.csv
+└── test_metrics_pipeline.json
+
+reports/figures/
+└── confusion_matrix_random_forest_(pipeline).png
+└── roc_curve_random_forest_(pipeline).png
 ```
 
-**Output generado:**
-- `data/interim/german_credit_cleaned.csv`
-- `data/processed/X_train.csv`, `X_test.csv`, `y_train.csv`, `y_test.csv`
-- `models/random_forest.pkl` + `random_forest_metadata.json`
-- `data/processed/test_predictions.csv`, `test_metrics.json`
-- `reports/figures/confusion_matrix_random_forest.png`
-- `reports/figures/roc_curve_random_forest.png`
-- `reports/figures/feature_importance_random_forest.png`
-
----
-
-### **Opción 2: Paso por Paso**
-
-Ejecuta cada etapa individualmente para debugging:
+### **Opción 2: Demo Rápido**
 ```bash
-# 1. Limpieza de datos
+# Demostración del sklearn Pipeline 
+python -m fase2.demo_pipeline
+```
+
+### **Opción 3: Paso por Paso**
+```bash
+# 1. Limpiar datos
 python -m fase2.dataset
-# Output: data/interim/german_credit_cleaned.csv
 
-# 2. Feature Engineering
+# 2. Feature engineering
 python -m fase2.features
-# Output: data/processed/X_train.csv, X_test.csv, y_train.csv, y_test.csv
 
-# 3. Entrenamiento
-python -m fase2.modeling.train --model-name random_forest
-# Output: models/random_forest.pkl + metadata
+# 3. Entrenar modelo
+python run_pipeline.py sklearn
 
-# 4. Evaluación
-python -m fase2.modeling.predict --model-path models/random_forest.pkl
-# Output: test_predictions.csv, test_metrics.json
+# 4. Diferentes modelos
+python run_pipeline.py sklearn --model-name logistic_regression
+python run_pipeline.py sklearn --model-name decision_tree
 ```
 
 ---
 
-### **Opción 3: Comparar Múltiples Modelos**
+## ✅ Etapas Completadas
 
-Entrena y compara todos los modelos automáticamente:
-```bash
-# Entrenar y comparar: random_forest, logistic_regression, decision_tree
-python run_pipeline.py compare
-```
+### **Etapa 1: Estructura del Proyecto**
 
-**Visualizaciones generadas:**
+**Objetivo:** Establecer estructura estandarizada del proyecto.
 
-**Por cada modelo:**
-- `confusion_matrix_<model>.png`
-- `roc_curve_<model>.png`
-- `feature_importance_<model>.png`
+**Implementado:**
+- ✅ Cookiecutter Data Science structure
+- ✅ Configuración con Pydantic (`config.py`)
+- ✅ Setup de logging (`utils/logger.py`)
+- ✅ Git repository inicializado
 
-**Comparaciones generales:**
-- `target_distribution.png` - Distribución de clases
-- `model_comparison.png` - Métricas lado a lado
-- `roc_curves_comparison.png` - Todas las ROC juntas
-- `cv_scores_comparison.png` - Cross-validation scores
-
-**Comandos útiles:**
-```bash
-# Ver modelos disponibles
-python run_pipeline.py models
-
-# Comparar con datos ya procesados
-python run_pipeline.py compare --skip-data-prep --skip-feature-eng
-```
+**Documentación:** Ver estructura en [Estructura del Proyecto](#estructura-del-proyecto)
 
 ---
 
-### **Opción 4: Uso Programático**
+### **Etapa 2: Refactorización OOP**
 
-#### **A) API de Alto Nivel (MLPipeline)**
-```python
-from fase2.pipeline import MLPipeline
+**Objetivo:** Organizar código en módulos con responsabilidades claras usando OOP.
 
-# Pipeline completo
-pipeline = MLPipeline()
-results = pipeline.run_full_pipeline(model_name='random_forest')
+#### **Clases Implementadas**
 
-# Acceder a resultados
-print(f"Accuracy: {results['metrics']['accuracy']:.4f}")
-print(f"AUC-ROC: {results['metrics']['auc_roc']:.4f}")
-print(f"Model: {results['model_path']}")
+**1. DataProcessor (`core/data_processor.py`)**
+- Carga de datos raw
+- Traducción de columnas
+- Limpieza de whitespace
+- Conversión a tipos numéricos
+- Validación de target
+- Manejo de missing values
+- Validación de rangos categóricos
+- Remoción de duplicados
 
-# Ejecutar paso por paso
-pipeline.run_data_preparation()
-pipeline.run_feature_engineering()
-pipeline.run_training('logistic_regression')
-metrics = pipeline.run_evaluation()
-figures = pipeline.run_visualization()
-
-# Comparar modelos
-results = pipeline.run_multiple_models(
-    model_names=['random_forest', 'logistic_regression'],
-    generate_plots=True
-)
-```
-
-#### **B) API de Bajo Nivel (Clases Individuales)**
+**Uso:**
 ```python
 from fase2.core.data_processor import DataProcessor
-from fase2.core.feature_engineer import FeatureEngineer
-from fase2.core.trainer import ModelTrainer
-from fase2.core.evaluator import ModelEvaluator
 
-# 1. Procesamiento de datos con method chaining
 processor = DataProcessor()
 df_clean = processor \
     .load_raw_data() \
@@ -316,125 +316,267 @@ df_clean = processor \
     .validate_categorical_ranges() \
     .remove_duplicates() \
     .get_data()
+```
 
-# 2. Feature engineering
+**2. FeatureEngineer (`core/feature_engineer.py`)**
+- Detección de outliers
+- Separación de features/target
+- Train-test split
+- Feature scaling
+- Guardado de artefactos
+
+**Uso:**
+```python
+from fase2.core.feature_engineer import FeatureEngineer
+
 engineer = FeatureEngineer()
-paths = engineer \
+engineer \
     .load_data() \
     .detect_outliers() \
     .split_target() \
     .train_test_split() \
     .scale_features() \
     .save_all()
-
-X_train, X_test, y_train, y_test = engineer.get_train_test_split()
-
-# 3. Entrenamiento
-trainer = ModelTrainer()
-model_path = trainer \
-    .load_training_data() \
-    .train('random_forest') \
-    .evaluate() \
-    .save()
-
-# 4. Evaluación
-evaluator = ModelEvaluator()
-metrics = evaluator \
-    .load_model(model_path) \
-    .load_test_data() \
-    .predict() \
-    .evaluate() \
-    .save_predictions() \
-    .save_metrics() \
-    .get_metrics()
-
-evaluator.print_classification_report()
 ```
 
-#### **C) API Funcional (Legacy - Notebooks)**
-```python
-# Importaciones legacy (siguen funcionando)
-from fase2.config import RAW_DATA_DIR, TARGET_COL
-from fase2.dataset import load_raw_data, translate_columns
-from fase2.features import scale_features
+**3. ModelTrainer (`core/trainer.py`)**
+- Entrenamiento con GridSearchCV
+- Cross-validation
+- Búsqueda de hiperparámetros
+- Guardado de modelos
 
-# Usar funciones directamente (como antes)
-df = load_raw_data()
-df = translate_columns(df)
-# ... etc
+**4. ModelEvaluator (`core/evaluator.py`)**
+- Predicción en test set
+- Cálculo de métricas
+- Classification report
+- Guardado de resultados
+
+**5. ModelFactory (`core/model_factory.py`)**
+- Factory Pattern para crear modelos
+- Grids de hiperparámetros predefinidos
+- Modelos soportados: Random Forest, Logistic Regression, Decision Tree
+
+**6. MLPipeline (`pipeline.py`)**
+- Orquestador maestro
+- Ejecuta workflow completo
+- Comparación de múltiples modelos
+
+#### **Design Patterns Aplicados**
+
+| Pattern | Dónde | Para Qué |
+|---------|-------|----------|
+| **Factory** | `ModelFactory` | Creación de modelos |
+| **Builder** | `PipelineBuilder` | Construcción de pipelines |
+| **Template Method** | `MLPipeline` | Workflow estándar |
+| **Facade** | `MLPipeline` | Interfaz simplificada |
+| **Method Chaining** | Todas las clases core | API fluida |
+
+#### **Principios SOLID**
+
+- ✅ **Single Responsibility:** Cada clase tiene una responsabilidad
+- ✅ **Open/Closed:** Extensible vía herencia/composición
+- ✅ **Dependency Inversion:** Config inyectable
+
+---
+
+### **Etapa 3: sklearn Pipeline (Best Practices)**
+
+**Objetivo:** Implementar pipeline de scikit-learn que automatice preprocesamiento, entrenamiento y evaluación.
+
+#### **¿Por qué sklearn Pipeline?**
+
+**Problemas sin Pipeline:**
+- ❌ Data leakage (fit en todo el dataset)
+- ❌ Múltiples objetos a serializar
+- ❌ Fácil olvidar preprocessing en producción
+- ❌ Difícil reproducir experimentos
+
+**Solución con Pipeline:**
+- ✅ Un solo objeto `.pkl` serializable
+- ✅ Preprocessing automático en train y test
+- ✅ No data leakage (fit solo en train)
+- ✅ GridSearchCV sobre todo el pipeline
+- ✅ Listo para producción
+
+#### **Componentes Implementados**
+
+**1. Custom Transformers (`transformers.py`)**
+
+Transformers compatibles con sklearn que siguen la API `fit/transform`:
+```python
+class OutlierRemover(BaseEstimator, TransformerMixin):
+    """Clip outliers usando IQR method."""
+    def fit(self, X, y=None):
+        # Aprender bounds del train set
+        return self
+    
+    def transform(self, X):
+        # Aplicar clipping
+        return X_clipped
+```
+
+**Transformers disponibles:**
+- `OutlierRemover` - Clip outliers con IQR
+- `TypeConverter` - Conversión a tipos numéricos
+- `CategoricalValidator` - Validación de categorías
+- `DataFrameSelector` - Selección de columnas
+
+**2. PipelineBuilder (`pipeline_builder.py`)**
+
+Constructor de pipelines sklearn:
+```python
+from fase2.pipeline_builder import PipelineBuilder
+
+builder = PipelineBuilder()
+
+# Pipeline simple
+pipeline = builder.build_pipeline('random_forest')
+
+# Pipeline con GridSearch
+grid_pipeline = builder.build_grid_search_pipeline(
+    model_name='random_forest',
+    cv_folds=5
+)
+```
+
+**Estructura del Pipeline:**
+```
+sklearn.pipeline.Pipeline
+├── imputer (SimpleImputer)        # Imputación de NaN
+├── scaler (StandardScaler)        # Escalado de features
+└── model (RandomForestClassifier) # Modelo ML
+```
+
+#### **Flujo de Trabajo con sklearn Pipeline**
+```
+1. Data Cleaning (dataset.py)
+   └── Limpieza manual → interim/
+
+2. Feature Engineering (features.py)
+   └── Outliers, train-test split → processed/
+
+3. sklearn Pipeline (pipeline_builder.py)
+   ├── Imputation (aprende de train)
+   ├── Scaling (aprende de train)
+   └── Model training
+```
+
+#### **Uso del sklearn Pipeline**
+
+**Método 1: CLI (Recomendado)**
+```bash
+python run_pipeline.py sklearn
+```
+
+**Método 2: Programático**
+```python
+from fase2.pipeline_builder import PipelineBuilder
+
+builder = PipelineBuilder()
+pipeline = builder.build_grid_search_pipeline('random_forest')
+pipeline.fit(X_train, y_train)
+
+# Guardar
+import joblib
+joblib.dump(pipeline.best_estimator_, 'model.pkl')
+
+# Cargar y usar
+loaded_pipeline = joblib.load('model.pkl')
+predictions = loaded_pipeline.predict(X_new)
+```
+
+**Método 3: Notebook Interactivo**
+```bash
+jupyter notebook notebooks/4.0-t34-sklearn-pipeline-best-practices.ipynb
+```
+
+#### **Best Practices Implementadas**
+
+| Practice | Implementación | Beneficio |
+|----------|----------------|-----------|
+| **No Data Leakage** | `fit()` solo en train | Resultados válidos |
+| **Single Object** | Pipeline completo en .pkl | Fácil deployment |
+| **Grid Search** | Sobre todo el pipeline | Optimal hyperparams |
+| **Reproducibilidad** | `random_state=42` everywhere | Resultados consistentes |
+| **Documentación** | Docstrings + Type hints | Código mantenible |
+
+#### **Archivos Clave de la Etapa 3**
+```
+fase2/
+├── transformers.py          # Custom sklearn transformers
+├── pipeline_builder.py      # Constructor de pipelines
+└── demo_pipeline.py         # Script de demostración
+
+notebooks/
+└── 4.0-t34-sklearn-pipeline-best-practices.ipynb
+
+docs/
+└── SKLEARN_PIPELINE_GUIDE.md  # Guía completa
 ```
 
 ---
 
-## 📊 Visualizaciones
+## 🔜 Próximos Pasos (Etapa 4)
 
-El pipeline genera automáticamente visualizaciones profesionales en `reports/figures/`:
+### **Objetivos de la Etapa 4**
 
-### **Visualizaciones por Modelo**
+Implementar tracking de experimentos y versionamiento de datos/modelos.
 
-| Plot | Descripción | Archivo |
-|------|-------------|---------|
-| Confusion Matrix | Matriz de confusión con porcentajes | `confusion_matrix_<model>.png` |
-| ROC Curve | Curva ROC con AUC score | `roc_curve_<model>.png` |
-| Feature Importance | Top 15 features más importantes | `feature_importance_<model>.png` |
+#### **Tareas Pendientes**
 
-### **Visualizaciones Comparativas**
+**1. MLflow - Tracking de Experimentos**
+- [ ] Setup de MLflow server
+- [ ] Logging automático de parámetros
+- [ ] Logging de métricas (AUC, accuracy, etc.)
+- [ ] Registro de artifacts (modelos, plots)
+- [ ] Comparación de runs en UI
+- [ ] Registro de modelos en Model Registry
 
-| Plot | Descripción | Archivo |
-|------|-------------|---------|
-| Target Distribution | Distribución de clases (balanceo) | `target_distribution.png` |
-| Model Comparison | Métricas lado a lado (bar chart) | `model_comparison.png` |
-| ROC Comparison | Todas las curvas ROC juntas | `roc_curves_comparison.png` |
-| CV Scores | Cross-validation performance | `cv_scores_comparison.png` |
+**2. DVC - Versionamiento de Datos**
+- [ ] Inicializar DVC en el proyecto
+- [ ] Configurar remote storage
+- [ ] Versionar `data/raw/`
+- [ ] Versionar `data/processed/`
+- [ ] Versionar `models/`
+- [ ] Pipeline de DVC
 
-**Características:**
-- ✅ Resolución 300 DPI (publicación)
-- ✅ Colores profesionales (viridis, seaborn)
-- ✅ Anotaciones con valores numéricos
-- ✅ Threshold lines para AUC ≥ 0.75
-- ✅ Formato PNG optimizado
+**3. Visualización de Resultados**
+- [ ] Dashboard de MLflow
+- [ ] Comparación de experimentos
+- [ ] Gráficos de convergencia
+- [ ] Análisis de hiperparámetros
+
+**4. Gestión de Modelos**
+- [ ] Model Registry con versiones
+- [ ] Metadata completo por versión
+- [ ] Transición de stages (Staging → Production)
+- [ ] Rollback capability
+
+#### **Recursos para Etapa 4**
+
+**Documentación:**
+- [MLflow Tracking](https://mlflow.org/docs/latest/tracking.html)
+- [MLflow Models](https://mlflow.org/docs/latest/models.html)
+- [DVC Get Started](https://dvc.org/doc/start)
+- [DVC with Google Drive](https://dvc.org/doc/user-guide/data-management/remote-storage/google-drive)
 
 ---
 
-## 📓 Notebooks Interactivos
+### **Notebooks Disponibles**
 
-Los notebooks en `notebooks/` demuestran análisis exploratorio:
+1. **`1.0-t34-data-exploration.ipynb`** - EDA del dataset
+2. **`2.0-t34-feature-engineering.ipynb`** - Exploración de features
+3. **`3.0-t34-model-training.ipynb`** - Entrenamiento de modelos
+4. **`4.0-t34-sklearn-pipeline-best-practices.ipynb`** - Demo de sklearn Pipeline
 
-1. **`1.0-t34-data-exploration.ipynb`**
-   - Análisis exploratorio del dataset
-   - Estadísticas descriptivas
-   - Distribuciones de features
+### **Scripts Útiles**
 
-2. **`2.0-t34-feature-engineering.ipynb`**
-   - Exploración de ingeniería de features
-   - Detección de outliers
-   - Análisis de correlaciones
-
-3. **`3.0-t34-model-training.ipynb`**
-   - Entrenamiento de modelos
-   - Comparación de performance
-   - Análisis de resultados
-
-### **Setup para Notebooks**
-```python
-# Habilitar autoreload (recarga automática de módulos)
-%load_ext autoreload
-%autoreload 2
-
-# Importar API OOP (recomendado)
-from fase2.pipeline import MLPipeline
-from fase2.core.data_processor import DataProcessor
-
-# Usar
-pipeline = MLPipeline()
-processor = DataProcessor()
-df = processor.load_raw_data().translate_columns().get_data()
-
-# API funcional también disponible
-from fase2.config import INTERIM_DATA_DIR
-import pandas as pd
-df = pd.read_csv(INTERIM_DATA_DIR / 'german_credit_cleaned.csv')
-```
+| Script | Propósito | Comando |
+|--------|-----------|---------|
+| `run_pipeline.py` | Pipeline completo | `python run_pipeline.py sklearn` |
+| `fase2/demo_pipeline.py` | Demo rápido | `python -m fase2.demo_pipeline` |
+| `fase2/dataset.py` | Solo limpieza | `python -m fase2.dataset` |
+| `fase2/features.py` | Solo features | `python -m fase2.features` |
 
 ---
 
@@ -442,12 +584,12 @@ df = pd.read_csv(INTERIM_DATA_DIR / 'german_credit_cleaned.csv')
 
 **Core:**
 - Python 3.12.1
-- pandas 2.1.0 - Manipulación de datos
-- numpy 1.24.3 - Cálculos numéricos
-- scikit-learn 1.3.0 - Modelos ML
+- pandas 2.1.0
+- numpy 1.24.3
+- scikit-learn 1.3.0
 
-**Validación y Configuración:**
-- pydantic - Validación de esquemas
+**Configuración y Validación:**
+- pydantic - Validación de configuración
 - loguru - Logging estructurado
 - typer - CLI moderna
 
@@ -455,42 +597,53 @@ df = pd.read_csv(INTERIM_DATA_DIR / 'german_credit_cleaned.csv')
 - matplotlib 3.7.2
 - seaborn 0.12.2
 
+**ML Pipeline:**
+- scikit-learn Pipeline
+- GridSearchCV
+- Custom Transformers
+
 **Desarrollo:**
-- Cookiecutter Data Science - Estructura
-- Git - Control de versiones
-- Jupyter - Análisis interactivo
-- joblib - Serialización
+- Cookiecutter Data Science
+- Git
+- Jupyter
+- joblib
+
+**Etapa 4:**
+- MLflow - Experiment tracking
+- DVC - Data versioning
+- (Opcional) GitHub Actions - CI/CD
 
 ---
 
-## 🎓 Aprendizajes Clave
+## 🐛 Troubleshooting
 
-Este proyecto demuestra implementación profesional de:
+### **Problema: Datos no encontrados**
+```bash
+# Verificar estructura
+ls data/raw/
+ls data/processed/
 
-### **1. Programación Orientada a Objetos**
-- ✅ Clases con responsabilidades únicas (SRP)
-- ✅ Encapsulación de estado y comportamiento
-- ✅ Method chaining para API fluida
-- ✅ Type hints completos
+# Si faltan, ejecutar:
+python -m fase2.dataset
+python -m fase2.features
+```
 
-### **2. Design Patterns**
-- ✅ **Factory Pattern** - `ModelFactory` para creación de modelos
-- ✅ **Template Method** - `MLPipeline` para workflow estándar
-- ✅ **Facade Pattern** - Interfaz simplificada para sistema complejo
+### **Problema: Módulo no encontrado**
+```bash
+# Reinstalar paquete
+pip install -e .
+```
 
-### **3. Software Engineering Best Practices**
-- ✅ **Separation of Concerns** - Arquitectura en capas
-- ✅ **DRY Principle** - Código reutilizable
-- ✅ **Configuration as Code** - Pydantic para validación
-- ✅ **Error Handling** - Custom exceptions descriptivas
-- ✅ **Backward Compatibility** - API dual (funcional + OOP)
-
-### **4. MLOps Practices**
-- ✅ Pipeline reproducible
-- ✅ Versionamiento de modelos (metadata JSON)
-- ✅ Logging estructurado
-- ✅ Configuración centralizada
-- ✅ Visualizaciones automáticas
+### **Problema: GridSearchCV muy lento**
+Para acelerar durante desarrollo, edita `fase2/core/model_factory.py`:
+```python
+# Grid reducido para testing
+'random_forest': {
+    'n_estimators': [100],      # Solo 1 valor
+    'max_depth': [20],          # Solo 1 valor
+    'min_samples_split': [2]    # Solo 1 valor
+}
+```
 
 ---
 
@@ -500,13 +653,5 @@ MIT License - ver [LICENSE](LICENSE) para detalles.
 
 ---
 
-## 📚 Referencias
-
-- **Dataset:** [UCI Machine Learning Repository - German Credit](https://archive.ics.uci.edu/ml/datasets/statlog+(german+credit+data))
-- **Template:** [Cookiecutter Data Science](https://drivendata.github.io/cookiecutter-data-science/)
-- **Documentación Scikit-learn:** [scikit-learn.org](https://scikit-learn.org/)
-
-
----
-
-**Proyecto académico con fines educativos - Octubre 2025**
+**Última actualización:** Octubre 2025  
+**Versión:** v3.0.0  

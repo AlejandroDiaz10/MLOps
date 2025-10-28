@@ -62,5 +62,34 @@ def models():
         print(f"  - {model}")
 
 
+@app.command()
+def sklearn(
+    model_name: str = typer.Option("random_forest", help="Model to train"),
+    skip_data_prep: bool = typer.Option(False, help="Skip data preparation"),
+    skip_feature_eng: bool = typer.Option(False, help="Skip feature engineering"),
+):
+    """
+    Run complete pipeline using sklearn Pipeline (BEST PRACTICE).
+
+    This demonstrates industry best practices:
+    - Single Pipeline object with all preprocessing
+    - GridSearchCV for hyperparameter tuning
+    - No data leakage
+    - Fully reproducible
+
+    Example:
+        python run_pipeline.py sklearn
+        python run_pipeline.py sklearn --model-name logistic_regression
+        python run_pipeline.py sklearn --skip-data-prep --skip-feature-eng
+    """
+    pipeline = MLPipeline()
+    pipeline.run_full_sklearn_pipeline(
+        model_name=model_name,
+        skip_data_prep=skip_data_prep,
+        skip_feature_eng=skip_feature_eng,
+        generate_plots=True,
+    )
+
+
 if __name__ == "__main__":
     app()
