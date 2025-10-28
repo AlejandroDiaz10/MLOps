@@ -12,7 +12,6 @@ from sklearn.model_selection import train_test_split
 import joblib
 
 from fase2.config import config
-from fase2.exceptions import FeatureEngineeringError, DataLoadError
 
 
 class FeatureEngineer:
@@ -71,7 +70,7 @@ class FeatureEngineer:
             logger.success(f"✓ Data loaded: {self.df.shape}")
             return self
         except Exception as e:
-            raise DataLoadError(f"Failed to load data: {str(e)}")
+            raise FileNotFoundError(f"Failed to load data: {str(e)}")
 
     def detect_outliers(
         self, columns: Optional[list] = None, method: str = "iqr"
@@ -170,9 +169,7 @@ class FeatureEngineer:
             self: For method chaining
         """
         if self.X is None or self.y is None:
-            raise FeatureEngineeringError(
-                "Must call split_target() before train_test_split()"
-            )
+            raise ValueError("Must call split_target() before train_test_split()")
 
         test_size = test_size or self.config.model.test_size
         random_state = random_state or self.config.model.random_state
@@ -212,9 +209,7 @@ class FeatureEngineer:
             self: For method chaining
         """
         if self.X_train is None or self.X_test is None:
-            raise FeatureEngineeringError(
-                "Must call train_test_split() before scale_features()"
-            )
+            raise ValueError("Must call train_test_split() before scale_features()")
 
         logger.info(f"Scaling features using {scaler_type} scaler...")
 
@@ -248,7 +243,7 @@ class FeatureEngineer:
             Tuple of (X_train, X_test, y_train, y_test)
         """
         if self.X_train_scaled is None or self.X_test_scaled is None:
-            raise FeatureEngineeringError("Must call scale_features() first")
+            raise ValueError("Must call scale_features() first")
 
         return self.X_train_scaled, self.X_test_scaled, self.y_train, self.y_test
 

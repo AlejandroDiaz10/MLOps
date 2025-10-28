@@ -1,43 +1,79 @@
 """
-Feature engineering and preprocessing utilities (CLI wrapper)
+Feature engineering script.
+
+This script follows Cookiecutter Data Science template and implements:
+- Loading cleaned data
+- Outlier detection and removal
+- Train-test split
+- Feature scaling
+- Saves processed data ready for modeling
 """
 
 from pathlib import Path
-
+import pandas as pd
 from loguru import logger
-import typer
 
-from fase2.config import INTERIM_DATA_DIR, PROCESSED_DATA_DIR
-from fase2.pipeline import MLPipeline
-
-app = typer.Typer()
+from fase2.config import config
+from fase2.core.feature_engineer import FeatureEngineer
 
 
-@app.command()
-def main(
-    input_path: Path = INTERIM_DATA_DIR / "german_credit_cleaned.csv",
-    output_dir: Path = PROCESSED_DATA_DIR,
-):
+def create_features(input_path: Path = None, output_dir: Path = None) -> dict:
     """
-    Complete feature engineering pipeline.
+    Create features from cleaned data.
 
-    This is a CLI wrapper around the MLPipeline.run_feature_engineering() method.
+    This function orchestrates the FeatureEngineer class to:
+    1. Load cleaned data
+    2. Detect and handle outliers
+    3. Split features and target
+    4. Create train-test split
+    5. Scale features
+    6. Save processed data
 
-    Reads cleaned data, handles outliers, splits data, scales features,
-    and saves processed datasets ready for modeling.
+    Args:
+        input_path: Path to cleaned data (default from config)
+        output_dir: Directory to save processed data (default from config)
 
-    Example:
-        python -m fase2.features
-        python -m fase2.features --input-path custom_cleaned.csv
+    Returns:
+        Dictionary with paths to saved files
     """
+    logger.info("Starting feature engineering process...")
+
+    # Default paths
+    if input_path is None:
+        input_path = config.paths.interim_data_dir / "german_credit_cleaned.csv"
+
+    if output_dir is None:
+        output_dir = config.paths.processed_data_dir
+
+    # Use FeatureEngineer with method chaining
+    engineer = FeatureEngineer()
+
+    paths = (
+        engineer.load_data(input_path)
+        .detect_outliers()
+        .split_target()
+        .train_test_split()
+        .scale_features()
+        .save_all(output_dir)
+    )
+
+    logger.success("✓ Feature engineering completed")
+    logger.info("  Files saved:")
+    for name, path in paths.items():
+        logger.info(f"    {name}: {path}")
+
+    return paths
+
+
+def main():
+    """CLI entry point for feature engineering."""
     try:
-        pipeline = MLPipeline()
-        pipeline.run_feature_engineering(input_path, output_dir)
-
+        create_features()
+        logger.success("✓ Feature engineering completed successfully")
     except Exception as e:
-        logger.error(f"Pipeline failed: {str(e)}")
-        raise typer.Exit(code=1)
+        logger.error(f"Feature engineering failed: {e}")
+        raise
 
 
 if __name__ == "__main__":
-    app()
+    main()

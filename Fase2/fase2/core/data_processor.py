@@ -8,8 +8,6 @@ import pandas as pd
 from loguru import logger
 
 from fase2.config import config
-from fase2.exceptions import DataLoadError, DataValidationError
-from fase2.utils.validators import DataValidator
 
 
 class DataProcessor:
@@ -26,7 +24,6 @@ class DataProcessor:
     Attributes:
         config: Configuration object
         df: Current DataFrame being processed
-        validator: DataValidator instance
     """
 
     def __init__(self, config_obj=None):
@@ -39,7 +36,6 @@ class DataProcessor:
         self.config = config_obj or config
         self.df: Optional[pd.DataFrame] = None
         self._original_shape: Optional[Tuple[int, int]] = None
-        self.validator = DataValidator()
         logger.debug("DataProcessor initialized")
 
     def load_raw_data(self, filepath: Optional[Path] = None) -> "DataProcessor":
@@ -53,7 +49,8 @@ class DataProcessor:
             self: For method chaining
 
         Raises:
-            DataLoadError: If file cannot be loaded
+            FileNotFoundError: If file cannot be loaded
+            ValueError: If data cannot be parsed
         """
         if filepath is None:
             filepath = self.config.paths.raw_data_dir / "german_credit_modified.csv"
@@ -67,9 +64,9 @@ class DataProcessor:
             )
             return self
         except FileNotFoundError:
-            raise DataLoadError(f"File not found: {filepath}")
+            raise FileNotFoundError(f"File not found: {filepath}")
         except Exception as e:
-            raise DataLoadError(f"Failed to load data from {filepath}: {str(e)}")
+            raise ValueError(f"Failed to load data from {filepath}: {str(e)}")
 
     def translate_columns(self) -> "DataProcessor":
         """

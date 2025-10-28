@@ -9,7 +9,6 @@ from sklearn.tree import DecisionTreeClassifier
 from loguru import logger
 
 from fase2.config import config
-from fase2.exceptions import ModelTrainingError
 
 
 class ModelFactory:
@@ -51,7 +50,7 @@ class ModelFactory:
             Instantiated model object
 
         Raises:
-            ModelTrainingError: If model_name is unknown
+            ValueError: If model_name is unknown
         """
         random_state = kwargs.pop("random_state", config.model.random_state)
 
@@ -77,7 +76,7 @@ class ModelFactory:
 
         else:
             available = list(ModelFactory.DEFAULT_PARAM_GRIDS.keys())
-            raise ModelTrainingError(
+            raise ValueError(
                 f"Unknown model type: '{model_name}'. Available: {available}"
             )
 
@@ -98,7 +97,7 @@ class ModelFactory:
             return custom_grid
 
         if model_name not in ModelFactory.DEFAULT_PARAM_GRIDS:
-            raise ModelTrainingError(f"No default param grid for model: {model_name}")
+            raise ValueError(f"No default param grid for model: {model_name}")
 
         logger.debug(f"Using default parameter grid for {model_name}")
         return ModelFactory.DEFAULT_PARAM_GRIDS[model_name]

@@ -2,7 +2,7 @@
   "model_name": "logistic_regression",
   "pipeline_type": "sklearn_pipeline",
   "model_type": "LogisticRegression",
-  "training_date": "2025-10-27 21:41:03",
+  "training_date": "2025-10-27 23:50:53",
   "dataset_info": {
     "n_samples": 551,
     "n_features": 20,
@@ -10,6 +10,15 @@
       "class_0": 146,
       "class_1": 405
     }
+  },
+  "grid_search": {
+    "best_score": 0.776250314940791,
+    "best_params": {
+      "model__C": 0.1,
+      "model__penalty": "l2",
+      "model__solver": "lbfgs"
+    },
+    "cv_folds": 3
   },
   "pipeline_steps": [
     {
@@ -24,36 +33,5 @@
       "name": "model",
       "transformer": "LogisticRegression"
     }
-  ],
-  "grid_search": {
-    "best_score": 0.7844983680999007,
-    "best_params": {
-      "model__C": 0.1,
-      "model__penalty": "l2",
-      "model__solver": "lbfgs"
-    },
-    "cv_results": {
-      "mean_test_score": [
-        0.7836838370937987,
-        0.7844983680999007,
-        0.7807946643961969,
-        0.7805420746416915,
-        0.7802923229743153
-      ],
-      "std_test_score": [
-        0.02918135263551939,
-        0.033336483110849295,
-        0.03329904491986504,
-        0.03386446949186385,
-        0.034096919092423905
-      ],
-      "params": [
-        "{'model__C': 0.01, 'model__penalty': 'l2', 'model__solver': 'lbfgs'}",
-        "{'model__C': 0.1, 'model__penalty': 'l2', 'model__solver': 'lbfgs'}",
-        "{'model__C': 1, 'model__penalty': 'l2', 'model__solver': 'lbfgs'}",
-        "{'model__C': 10, 'model__penalty': 'l2', 'model__solver': 'lbfgs'}",
-        "{'model__C': 100, 'model__penalty': 'l2', 'model__solver': 'lbfgs'}"
-      ]
-    }
-  }
+  ]
 }
