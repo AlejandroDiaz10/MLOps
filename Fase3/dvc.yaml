@@ -1,0 +1,45 @@
+stages:
+  prepare_data:
+    cmd: python -m fase3.dataset
+    deps:
+      - data/raw/german_credit_modified.csv
+      - fase3/dataset.py
+      - fase3/core/data_processor.py
+    outs:
+      - data/interim/german_credit_cleaned.csv
+    desc: "Clean and validate raw data"
+    
+  feature_engineering:
+    cmd: python -m fase3.features
+    deps:
+      - data/interim/german_credit_cleaned.csv
+      - fase3/features.py
+      - fase3/core/feature_engineer.py
+    params:
+      - model.test_size
+      - model.random_state
+    outs:
+      - data/processed/X_train.csv
+      - data/processed/X_test.csv
+      - data/processed/y_train.csv
+      - data/processed/y_test.csv
+      - models/scaler.pkl
+    desc: "Feature engineering and train/test split"
+    
+  train_model:
+    cmd: python -m fase3.modeling.train --model-name random_forest
+    deps:
+      - data/processed/X_train.csv
+      - data/processed/y_train.csv
+      - fase3/modeling/train.py
+      - fase3/pipeline_builder.py
+      - fase3/core/model_factory.py
+    params:
+      - model.random_state
+      - model.cv_folds
+    outs:
+      - models/random_forest_pipeline.pkl
+    metrics:
+      - reports/metrics/train_metrics.json:
+          cache: false
+    desc: "Train Random Forest with GridSearchCV"

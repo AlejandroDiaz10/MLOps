@@ -1,0 +1,24 @@
+# params.yaml
+model:
+  random_state: 42
+  cv_folds: 5
+  test_size: 0.2
+  auc_threshold: 0.75
+
+data:
+  target_col: credit_risk
+  continuous_features:
+    - duration
+    - amount
+    - installment_rate
+    - age
+    - residence_duration
+    - existing_credits
+
+mlflow:
+  tracking_uri: http://34.67.152.248:5000
+  experiment_name: equipo34-german-credit
+
+dvc:
+  remote_name: team_remote
+  remote_url: s3://itesm-mna/202502-equipo34
