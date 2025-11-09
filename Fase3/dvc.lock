@@ -1,0 +1,98 @@
+schema: '2.0'
+stages:
+  prepare_data:
+    cmd: python -m fase3.dataset
+    deps:
+    - path: data/raw/german_credit_modified.csv
+      hash: md5
+      md5: be16965e43fda504d3406a0e51559da6
+      size: 96764
+    - path: fase3/core/data_processor.py
+      hash: md5
+      md5: 1dfd2bc836997f9e3a887c38de8af59a
+      size: 11237
+    - path: fase3/dataset.py
+      hash: md5
+      md5: 4d0cd634a4c00e947c141a1e2255bc24
+      size: 2238
+    outs:
+    - path: data/interim/german_credit_cleaned.csv
+      hash: md5
+      md5: 6cbf94a5f68b1955a9b2d7014c598ba5
+      size: 75458
+  feature_engineering:
+    cmd: python -m fase3.features
+    deps:
+    - path: data/interim/german_credit_cleaned.csv
+      hash: md5
+      md5: 6cbf94a5f68b1955a9b2d7014c598ba5
+      size: 75458
+    - path: fase3/core/feature_engineer.py
+      hash: md5
+      md5: 24a1788acaa67584e2018caf51ecc481
+      size: 10177
+    - path: fase3/features.py
+      hash: md5
+      md5: 73e60245eb3c4eaf4f72e05ab978928c
+      size: 2026
+    params:
+      params.yaml:
+        model.random_state: 42
+        model.test_size: 0.2
+    outs:
+    - path: data/processed/X_test.csv
+      hash: md5
+      md5: 0319072970e475a1134d1c001df26326
+      size: 54410
+    - path: data/processed/X_train.csv
+      hash: md5
+      md5: b3e75a54904bd4152e637cb5c50d58a3
+      size: 216788
+    - path: data/processed/y_test.csv
+      hash: md5
+      md5: 20e641c66ac71ad25be79afbbc0e56c5
+      size: 564
+    - path: data/processed/y_train.csv
+      hash: md5
+      md5: a60727fe0824c3cfca88729a4684be23
+      size: 2216
+    - path: models/scaler.pkl
+      hash: md5
+      md5: 6575d3be0b5ee82feb27a1a662af93cf
+      size: 1639
+  train_model:
+    cmd: python -m fase3.modeling.train --model-name random_forest
+    deps:
+    - path: data/processed/X_train.csv
+      hash: md5
+      md5: b3e75a54904bd4152e637cb5c50d58a3
+      size: 216788
+    - path: data/processed/y_train.csv
+      hash: md5
+      md5: a60727fe0824c3cfca88729a4684be23
+      size: 2216
+    - path: fase3/core/model_factory.py
+      hash: md5
+      md5: 774bb625810b65c1c227bdf8dde9dba4
+      size: 3548
+    - path: fase3/modeling/train.py
+      hash: md5
+      md5: 07a855fde2c3fd8b968375999f2099ea
+      size: 16669
+    - path: fase3/pipeline_builder.py
+      hash: md5
+      md5: 168ff66dc6efbad3d04f92a85eb8e2dd
+      size: 5335
+    params:
+      params.yaml:
+        model.cv_folds: 5
+        model.random_state: 42
+    outs:
+    - path: models/random_forest_pipeline.pkl
+      hash: md5
+      md5: d18dc22a9ba0970ec93d622053c63a3c
+      size: 1143010
+    - path: reports/metrics/train_metrics.json
+      hash: md5
+      md5: 8b9ced64425c5b69bc396ce830efb23a
+      size: 133
