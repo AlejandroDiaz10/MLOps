@@ -164,6 +164,18 @@ def predict(input_data: PredictionInput):
         # Convert input to DataFrame
         df = pd.DataFrame([input_data.dict()])
 
+        # CRITICAL: Reorder columns to match training order
+        # Get expected feature order from model metadata
+        metadata = getattr(app.state, "model_metadata", {})
+        feature_names = metadata.get("feature_names", None)
+
+        if feature_names:
+            # Reorder to match training
+            df = df[feature_names]
+        else:
+            # Fallback: alphabetical order (standard for this dataset)
+            df = df.sort_index(axis=1)
+
         # Make prediction
         prediction = int(app.state.model.predict(df)[0])
 
