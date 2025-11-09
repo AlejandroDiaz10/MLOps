@@ -1,0 +1,69 @@
+{
+  "model_name": "random_forest",
+  "pipeline_type": "sklearn_pipeline",
+  "model_type": "RandomForestClassifier",
+  "training_date": "2025-11-08T23:03:07.535566",
+  "mlflow_run_id": "8e290af365114ad29e5925a431c9e910",
+  "mlflow_experiment": "equipo34-german-credit",
+  "dataset_info": {
+    "n_samples_train": 551,
+    "n_features": 20,
+    "n_samples_class_0": 146,
+    "n_samples_class_1": 405,
+    "class_balance_ratio": 0.73502722323049
+  },
+  "training_params": {
+    "model_name": "random_forest",
+    "cv_folds": 5,
+    "test_size": 0.2,
+    "random_state": 42,
+    "timestamp": "2025-11-08T23:02:53.619672"
+  },
+  "grid_search": {
+    "best_score": 0.800539236554562,
+    "best_params": {
+      "model__max_depth": 10,
+      "model__min_samples_leaf": 2,
+      "model__min_samples_split": 2,
+      "model__n_estimators": 100
+    },
+    "cv_folds": 5,
+    "training_time_seconds": 5.2489728927612305
+  },
+  "pipeline_steps": [
+    {
+      "name": "imputer",
+      "transformer": "SimpleImputer"
+    },
+    {
+      "name": "scaler",
+      "transformer": "StandardScaler"
+    },
+    {
+      "name": "model",
+      "transformer": "RandomForestClassifier"
+    }
+  ],
+  "feature_names": [
+    "checking_account",
+    "duration",
+    "credit_history",
+    "purpose",
+    "amount",
+    "savings_account",
+    "employment_duration",
+    "installment_rate",
+    "personal_status",
+    "other_debtors",
+    "residence_duration",
+    "property",
+    "age",
+    "other_installment_plans",
+    "housing",
+    "existing_credits",
+    "job",
+    "dependents",
+    "telephone",
+    "foreign_worker"
+  ]
+}
