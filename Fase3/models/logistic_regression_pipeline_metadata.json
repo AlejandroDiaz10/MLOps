@@ -1,9 +1,9 @@
 {
-  "model_name": "random_forest",
+  "model_name": "logistic_regression",
   "pipeline_type": "sklearn_pipeline",
-  "model_type": "RandomForestClassifier",
-  "training_date": "2025-11-09T00:28:19.280851",
-  "mlflow_run_id": "e34d1cd8be8248488d4b300be78cfaff",
+  "model_type": "LogisticRegression",
+  "training_date": "2025-11-09T00:28:43.400950",
+  "mlflow_run_id": "378e597e45f54f2da3dc18693d13989a",
   "mlflow_experiment": "equipo34-german-credit",
   "dataset_info": {
     "n_samples_train": 551,
@@ -14,33 +14,32 @@
     "class_balance_ratio_train": 0.73502722323049
   },
   "training_params": {
-    "model_name": "random_forest",
+    "model_name": "logistic_regression",
     "cv_folds": 5,
     "test_size": 0.2,
     "random_state": 42,
-    "timestamp": "2025-11-09T00:28:02.784384"
+    "timestamp": "2025-11-09T00:28:28.720197"
   },
   "grid_search": {
-    "best_cv_score": 0.800539236554562,
+    "best_cv_score": 0.7844983680999007,
     "best_params": {
-      "model__max_depth": 10,
-      "model__min_samples_leaf": 2,
-      "model__min_samples_split": 2,
-      "model__n_estimators": 100
+      "model__C": 0.1,
+      "model__penalty": "l2",
+      "model__solver": "lbfgs"
     },
     "cv_folds": 5,
-    "training_time_seconds": 4.9893739223480225
+    "training_time_seconds": 1.6438441276550293
   },
   "test_metrics": {
-    "test_accuracy": 0.7681159420289855,
-    "test_precision": 0.7851239669421488,
+    "test_accuracy": 0.7971014492753623,
+    "test_precision": 0.811965811965812,
     "test_recall": 0.9405940594059405,
-    "test_f1_score": 0.8558558558558559,
-    "test_auc_roc": 0.8274016590848274,
+    "test_f1_score": 0.8715596330275229,
+    "test_auc_roc": 0.8185710462938186,
     "test_confusion_matrix": [
       [
-        11,
-        26
+        15,
+        22
       ],
       [
         6,
@@ -59,7 +58,7 @@
     },
     {
       "name": "model",
-      "transformer": "RandomForestClassifier"
+      "transformer": "LogisticRegression"
     }
   ],
   "feature_names": [

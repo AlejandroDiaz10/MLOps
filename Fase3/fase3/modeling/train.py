@@ -4,9 +4,9 @@ Model training script using sklearn Pipeline with MLflow tracking.
 This script implements:
 - sklearn Pipeline with preprocessing steps
 - GridSearchCV for hyperparameter tuning
-- MLflow experiment tracking
+- MLflow experiment tracking with ALL metrics
+- Model evaluation on test set
 - Model versioning and registry
-- Comprehensive logging and error handling
 """
 
 import mlflow
@@ -21,6 +21,15 @@ import json
 from loguru import logger
 from typing import Optional, Dict
 from datetime import datetime
+
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+    confusion_matrix,
+)
 
 from fase3.config import config
 from fase3.pipeline_builder import PipelineBuilder
@@ -52,6 +61,51 @@ def setup_mlflow() -> None:
         raise
 
 
+def evaluate_on_test_set(pipeline, X_test: pd.DataFrame, y_test: np.ndarray) -> Dict:
+    """
+    Evaluate pipeline on test set and return all metrics.
+    
+    Args:
+        pipeline: Trained sklearn pipeline
+        X_test: Test features
+        y_test: Test labels
+        
+    Returns:
+        Dictionary with all evaluation metrics
+    """
+    logger.info("\n📊 Evaluating on test set...")
+    
+    # Predictions
+    y_pred = pipeline.predict(X_test)
+    y_proba = pipeline.predict_proba(X_test)[:, 1] if hasattr(pipeline, "predict_proba") else None
+    
+    # Calculate metrics
+    metrics = {
+        "test_accuracy": float(accuracy_score(y_test, y_pred)),
+        "test_precision": float(precision_score(y_test, y_pred, zero_division=0)),
+        "test_recall": float(recall_score(y_test, y_pred, zero_division=0)),
+        "test_f1_score": float(f1_score(y_test, y_pred, zero_division=0)),
+    }
+    
+    if y_proba is not None:
+        metrics["test_auc_roc"] = float(roc_auc_score(y_test, y_proba))
+    
+    # Confusion matrix
+    cm = confusion_matrix(y_test, y_pred)
+    metrics["test_confusion_matrix"] = cm.tolist()
+    
+    # Log metrics
+    logger.info("  Test Set Metrics:")
+    logger.info(f"    Accuracy:  {metrics['test_accuracy']:.4f}")
+    logger.info(f"    Precision: {metrics['test_precision']:.4f}")
+    logger.info(f"    Recall:    {metrics['test_recall']:.4f}")
+    logger.info(f"    F1-Score:  {metrics['test_f1_score']:.4f}")
+    if "test_auc_roc" in metrics:
+        logger.info(f"    AUC-ROC:   {metrics['test_auc_roc']:.4f}")
+    
+    return metrics
+
+
 def train_model(
     model_name: str = "random_forest",
     param_grid: Optional[Dict] = None,
@@ -75,10 +129,6 @@ def train_model(
     Raises:
         FileNotFoundError: If training data is not found
         Exception: If training fails
-
-    Example:
-        >>> model_path = train_model(model_name="random_forest", cv_folds=5)
-        >>> print(f"Model saved to: {model_path}")
     """
 
     logger.info("=" * 70)
@@ -99,7 +149,7 @@ def train_model(
     # Start MLflow run context
     mlflow_context = (
         mlflow.start_run(
-            run_name=f"{model_name}_training_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            run_name=f"{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         )
         if mlflow_enabled
         else NoOpContext()
@@ -132,10 +182,12 @@ def train_model(
             logger.info("\n1️⃣ Loading processed data...")
             X_train_path = config.paths.processed_data_dir / "X_train.csv"
             y_train_path = config.paths.processed_data_dir / "y_train.csv"
+            X_test_path = config.paths.processed_data_dir / "X_test.csv"
+            y_test_path = config.paths.processed_data_dir / "y_test.csv"
 
-            if not X_train_path.exists() or not y_train_path.exists():
+            if not all([p.exists() for p in [X_train_path, y_train_path, X_test_path, y_test_path]]):
                 error_msg = (
-                    "Training data not found. Please run data preprocessing first:\n"
+                    "Training/test data not found. Please run data preprocessing first:\n"
                     "  python -m fase3.dataset\n"
                     "  python -m fase3.features"
                 )
@@ -144,30 +196,29 @@ def train_model(
 
             X_train = pd.read_csv(X_train_path)
             y_train = pd.read_csv(y_train_path).values.ravel()
+            X_test = pd.read_csv(X_test_path)
+            y_test = pd.read_csv(y_test_path).values.ravel()
 
             logger.success(f"✅ Data loaded successfully")
-            logger.info(f"   Shape: {X_train.shape}")
-            logger.info(
-                f"   Features: {list(X_train.columns[:5])}... ({len(X_train.columns)} total)"
-            )
+            logger.info(f"   Train shape: {X_train.shape}")
+            logger.info(f"   Test shape: {X_test.shape}")
 
             # ========== LOG DATASET INFO ==========
             dataset_info = {
                 "n_samples_train": len(X_train),
+                "n_samples_test": len(X_test),
                 "n_features": X_train.shape[1],
-                "n_samples_class_0": int((y_train == 0).sum()),
-                "n_samples_class_1": int((y_train == 1).sum()),
-                "class_balance_ratio": float((y_train == 1).sum() / len(y_train)),
+                "n_samples_class_0_train": int((y_train == 0).sum()),
+                "n_samples_class_1_train": int((y_train == 1).sum()),
+                "class_balance_ratio_train": float((y_train == 1).sum() / len(y_train)),
             }
 
             logger.info("\n📊 Dataset Statistics:")
-            logger.info(f"   Total samples: {dataset_info['n_samples_train']}")
+            logger.info(f"   Train samples: {dataset_info['n_samples_train']}")
+            logger.info(f"   Test samples: {dataset_info['n_samples_test']}")
             logger.info(f"   Features: {dataset_info['n_features']}")
-            logger.info(f"   Class 0 (Bad Credit): {dataset_info['n_samples_class_0']}")
-            logger.info(
-                f"   Class 1 (Good Credit): {dataset_info['n_samples_class_1']}"
-            )
-            logger.info(f"   Class balance: {dataset_info['class_balance_ratio']:.2%}")
+            logger.info(f"   Train Class 0: {dataset_info['n_samples_class_0_train']}")
+            logger.info(f"   Train Class 1: {dataset_info['n_samples_class_1_train']}")
 
             if mlflow_enabled:
                 try:
@@ -192,20 +243,10 @@ def train_model(
                 steps_df = builder.get_pipeline_steps(grid_pipeline.estimator)
                 print(steps_df.to_string(index=False))
 
-            # Log parameter grid
-            if mlflow_enabled and param_grid:
-                try:
-                    for key, value in param_grid.items():
-                        mlflow.log_param(f"grid_{key}", str(value))
-                except Exception as e:
-                    logger.warning(f"⚠️ Failed to log param grid: {e}")
-
             # ========== TRAIN MODEL ==========
             logger.info(f"\n3️⃣ Training with GridSearchCV ({cv_folds}-fold CV)...")
-            logger.info("   This may take a few minutes...")
 
             import time
-
             start_time = time.time()
 
             grid_pipeline.fit(X_train, y_train)
@@ -215,37 +256,32 @@ def train_model(
 
             # ========== GET BEST RESULTS ==========
             best_pipeline = grid_pipeline.best_estimator_
-            best_score = grid_pipeline.best_score_
+            best_cv_score = grid_pipeline.best_score_
             best_params = grid_pipeline.best_params_
 
             logger.success("\n" + "=" * 70)
-            logger.success("🎯 TRAINING RESULTS")
+            logger.success("🎯 CROSS-VALIDATION RESULTS")
             logger.success("=" * 70)
-            logger.success(f"✅ Best CV AUC-ROC Score: {best_score:.4f}")
-            logger.success(f"✅ Training Time: {training_time:.2f}s")
-            logger.info("\n🔧 Best Hyperparameters:")
-            for key, value in best_params.items():
-                logger.info(f"   {key}: {value}")
-            logger.success("=" * 70)
+            logger.info(f"Best CV Score (AUC-ROC): {best_cv_score:.4f}")
+            logger.info(f"Best Parameters: {best_params}")
+
+            # ========== EVALUATE ON TEST SET ==========
+            test_metrics = evaluate_on_test_set(best_pipeline, X_test, y_test)
 
             # ========== LOG METRICS TO MLFLOW ==========
             if mlflow_enabled:
                 try:
-                    mlflow.log_metric("cv_best_score", best_score)
-                    mlflow.log_metric("training_time_seconds", training_time)
+                    # Log best params
                     mlflow.log_params(best_params)
 
-                    # Log CV results
-                    cv_results = grid_pipeline.cv_results_
-                    mlflow.log_metric(
-                        "cv_mean_score", cv_results["mean_test_score"].max()
-                    )
-                    mlflow.log_metric(
-                        "cv_std_score",
-                        cv_results["std_test_score"][
-                            cv_results["mean_test_score"].argmax()
-                        ],
-                    )
+                    # Log CV metrics
+                    mlflow.log_metric("cv_best_score", best_cv_score)
+                    mlflow.log_metric("training_time_seconds", training_time)
+
+                    # Log ALL test metrics
+                    for metric_name, metric_value in test_metrics.items():
+                        if metric_name != "test_confusion_matrix":  # Skip matrix
+                            mlflow.log_metric(metric_name, metric_value)
 
                 except Exception as e:
                     logger.warning(f"⚠️ Failed to log metrics to MLflow: {e}")
@@ -257,15 +293,18 @@ def train_model(
 
                     signature = infer_signature(X_train, best_pipeline.predict(X_train))
 
+                    # Register with unique name per model type
+                    registered_model_name = f"{config.mlflow.experiment_name}_{model_name}"
+
                     mlflow.sklearn.log_model(
                         best_pipeline,
                         artifact_path="model",
                         signature=signature,
-                        registered_model_name=f"{model_name}_classifier",
+                        registered_model_name=registered_model_name,
                         input_example=X_train.head(1),
                     )
 
-                    logger.success("✅ Model logged to MLflow registry")
+                    logger.success(f"✅ Model logged to MLflow registry as: {registered_model_name}")
 
                 except Exception as e:
                     logger.warning(f"⚠️ Failed to log model to MLflow: {e}")
@@ -293,17 +332,16 @@ def train_model(
                     "model_type": type(best_pipeline.named_steps["model"]).__name__,
                     "training_date": datetime.now().isoformat(),
                     "mlflow_run_id": run_id,
-                    "mlflow_experiment": (
-                        config.mlflow.experiment_name if mlflow_enabled else None
-                    ),
+                    "mlflow_experiment": config.mlflow.experiment_name if mlflow_enabled else None,
                     "dataset_info": dataset_info,
                     "training_params": training_params,
                     "grid_search": {
-                        "best_score": float(best_score),
+                        "best_cv_score": float(best_cv_score),
                         "best_params": best_params,
                         "cv_folds": cv_folds,
                         "training_time_seconds": training_time,
                     },
+                    "test_metrics": test_metrics,
                     "pipeline_steps": [
                         {"name": name, "transformer": type(transformer).__name__}
                         for name, transformer in best_pipeline.steps
@@ -325,6 +363,28 @@ def train_model(
                     except Exception as e:
                         logger.warning(f"⚠️ Failed to log artifacts to MLflow: {e}")
 
+            # ========== SAVE METRICS FOR DVC ==========
+            metrics_output = {
+                "cv_best_score": float(best_cv_score),
+                "training_time_seconds": float(training_time),
+                "test_accuracy": test_metrics["test_accuracy"],
+                "test_precision": test_metrics["test_precision"],
+                "test_recall": test_metrics["test_recall"],
+                "test_f1_score": test_metrics["test_f1_score"],
+                "test_auc_roc": test_metrics.get("test_auc_roc", 0.0),
+                "n_samples_train": int(len(X_train)),
+                "n_samples_test": int(len(X_test)),
+                "n_features": int(X_train.shape[1]),
+            }
+
+            metrics_path = config.paths.proj_root / "reports" / "metrics" / f"{model_name}_metrics.json"
+            metrics_path.parent.mkdir(parents=True, exist_ok=True)
+
+            with open(metrics_path, "w") as f:
+                json.dump(metrics_output, f, indent=2)
+
+            logger.info(f"✅ Metrics saved for DVC: {metrics_path}")
+
             # ========== FINAL SUMMARY ==========
             logger.info("\n" + "🎉" * 35)
             logger.success("🎉 TRAINING COMPLETED SUCCESSFULLY!")
@@ -334,32 +394,12 @@ def train_model(
                 logger.info(f"\n📊 MLflow:")
                 logger.info(f"   Run ID: {run_id}")
                 logger.info(f"   Tracking URI: {config.mlflow.tracking_uri}")
-                logger.info(
-                    f"   View in UI: {config.mlflow.tracking_uri}/#/experiments/{mlflow.active_run().info.experiment_id}/runs/{run_id}"
-                )
 
             if pipeline_path:
                 logger.info(f"\n💾 Saved Files:")
                 logger.info(f"   Pipeline: {pipeline_path}")
                 logger.info(f"   Metadata: {metadata_path}")
-
-            # ========== SAVE METRICS FOR DVC ==========
-            metrics_output = {
-                "cv_best_score": float(best_score),
-                "training_time_seconds": float(training_time),
-                "n_samples_train": int(len(X_train)),
-                "n_features": int(X_train.shape[1]),
-            }
-
-            metrics_path = (
-                config.paths.proj_root / "reports" / "metrics" / "train_metrics.json"
-            )
-            metrics_path.parent.mkdir(parents=True, exist_ok=True)
-
-            with open(metrics_path, "w") as f:
-                json.dump(metrics_output, f, indent=2)
-
-            logger.info(f"✅ Metrics saved for DVC: {metrics_path}")
+                logger.info(f"   Metrics: {metrics_path}")
 
             return pipeline_path
 
@@ -432,9 +472,6 @@ def main():
 
             # Train without MLflow (local testing)
             python -m fase3.modeling.train --no-mlflow
-
-            # Train and save only to MLflow
-            python -m fase3.modeling.train --no-save
         """
         try:
             train_model(

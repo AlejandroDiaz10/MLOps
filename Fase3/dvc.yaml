@@ -26,11 +26,13 @@ stages:
       - models/scaler.pkl
     desc: "Feature engineering and train/test split"
     
-  train_model:
+  train_random_forest:
     cmd: python -m fase3.modeling.train --model-name random_forest
     deps:
       - data/processed/X_train.csv
       - data/processed/y_train.csv
+      - data/processed/X_test.csv
+      - data/processed/y_test.csv
       - fase3/modeling/train.py
       - fase3/pipeline_builder.py
       - fase3/core/model_factory.py
@@ -40,6 +42,62 @@ stages:
     outs:
       - models/random_forest_pipeline.pkl
     metrics:
-      - reports/metrics/train_metrics.json:
+      - reports/metrics/random_forest_metrics.json:
           cache: false
     desc: "Train Random Forest with GridSearchCV"
+
+  train_logistic_regression:
+    cmd: python -m fase3.modeling.train --model-name logistic_regression
+    deps:
+      - data/processed/X_train.csv
+      - data/processed/y_train.csv
+      - data/processed/X_test.csv
+      - data/processed/y_test.csv
+      - fase3/modeling/train.py
+      - fase3/pipeline_builder.py
+      - fase3/core/model_factory.py
+    params:
+      - model.random_state
+      - model.cv_folds
+    outs:
+      - models/logistic_regression_pipeline.pkl
+    metrics:
+      - reports/metrics/logistic_regression_metrics.json:
+          cache: false
+    desc: "Train Logistic Regression with GridSearchCV"
+
+  train_decision_tree:
+    cmd: python -m fase3.modeling.train --model-name decision_tree
+    deps:
+      - data/processed/X_train.csv
+      - data/processed/y_train.csv
+      - data/processed/X_test.csv
+      - data/processed/y_test.csv
+      - fase3/modeling/train.py
+      - fase3/pipeline_builder.py
+      - fase3/core/model_factory.py
+    params:
+      - model.random_state
+      - model.cv_folds
+    outs:
+      - models/decision_tree_pipeline.pkl
+    metrics:
+      - reports/metrics/decision_tree_metrics.json:
+          cache: false
+    desc: "Train Decision Tree with GridSearchCV"
+    
+  select_best_model:
+    cmd: python -m fase3.modeling.select_best_model
+    deps:
+      - models/random_forest_pipeline.pkl
+      - models/logistic_regression_pipeline.pkl
+      - models/decision_tree_pipeline.pkl
+      - reports/metrics/random_forest_metrics.json
+      - reports/metrics/logistic_regression_metrics.json
+      - reports/metrics/decision_tree_metrics.json
+    outs:
+      - models/best_model_pipeline.pkl
+    metrics:
+      - reports/metrics/best_model_selection.json:
+          cache: false
+    desc: "Select best model based on AUC-ROC and copy to best_model"

@@ -1,1 +1,6 @@
-/german_credit_modified.csv
+# Ignore all CSV and pickle files (tracked by DVC)
+*.csv
+*.pkl
+
+# Keep this gitignore
+!.gitignore

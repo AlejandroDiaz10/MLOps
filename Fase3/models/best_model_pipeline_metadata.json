@@ -83,5 +83,15 @@
     "dependents",
     "telephone",
     "foreign_worker"
-  ]
+  ],
+  "selection_info": {
+    "selected_from": [
+      "random_forest",
+      "logistic_regression",
+      "decision_tree"
+    ],
+    "selection_date": "2025-11-09T00:29:01.416200",
+    "selection_criterion": "test_auc_roc",
+    "test_auc_roc": 0.8274016590848274
+  }
 }

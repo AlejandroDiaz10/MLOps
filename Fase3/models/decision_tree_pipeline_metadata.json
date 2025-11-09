@@ -1,9 +1,9 @@
 {
-  "model_name": "random_forest",
+  "model_name": "decision_tree",
   "pipeline_type": "sklearn_pipeline",
-  "model_type": "RandomForestClassifier",
-  "training_date": "2025-11-09T00:28:19.280851",
-  "mlflow_run_id": "e34d1cd8be8248488d4b300be78cfaff",
+  "model_type": "DecisionTreeClassifier",
+  "training_date": "2025-11-09T00:28:59.512962",
+  "mlflow_run_id": "cc72bcab92b543ff925278dafb6c4e8b",
   "mlflow_experiment": "equipo34-german-credit",
   "dataset_info": {
     "n_samples_train": 551,
@@ -14,37 +14,36 @@
     "class_balance_ratio_train": 0.73502722323049
   },
   "training_params": {
-    "model_name": "random_forest",
+    "model_name": "decision_tree",
     "cv_folds": 5,
     "test_size": 0.2,
     "random_state": 42,
-    "timestamp": "2025-11-09T00:28:02.784384"
+    "timestamp": "2025-11-09T00:28:49.561376"
   },
   "grid_search": {
-    "best_cv_score": 0.800539236554562,
+    "best_cv_score": 0.7140428551156519,
     "best_params": {
-      "model__max_depth": 10,
-      "model__min_samples_leaf": 2,
-      "model__min_samples_split": 2,
-      "model__n_estimators": 100
+      "model__max_depth": 5,
+      "model__min_samples_leaf": 4,
+      "model__min_samples_split": 10
     },
     "cv_folds": 5,
-    "training_time_seconds": 4.9893739223480225
+    "training_time_seconds": 1.7749457359313965
   },
   "test_metrics": {
     "test_accuracy": 0.7681159420289855,
-    "test_precision": 0.7851239669421488,
-    "test_recall": 0.9405940594059405,
-    "test_f1_score": 0.8558558558558559,
-    "test_auc_roc": 0.8274016590848274,
+    "test_precision": 0.8285714285714286,
+    "test_recall": 0.8613861386138614,
+    "test_f1_score": 0.8446601941747572,
+    "test_auc_roc": 0.78003746320578,
     "test_confusion_matrix": [
       [
-        11,
-        26
+        19,
+        18
       ],
       [
-        6,
-        95
+        14,
+        87
       ]
     ]
   },
@@ -59,7 +58,7 @@
     },
     {
       "name": "model",
-      "transformer": "RandomForestClassifier"
+      "transformer": "DecisionTreeClassifier"
     }
   ],
   "feature_names": [

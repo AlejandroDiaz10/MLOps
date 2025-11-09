@@ -1,0 +1,36 @@
+{
+  "best_model_name": "random_forest",
+  "selection_date": "2025-11-09T00:29:01.416395",
+  "selection_criterion": "test_auc_roc",
+  "models_compared": [
+    "random_forest",
+    "logistic_regression",
+    "decision_tree"
+  ],
+  "best_metrics": {
+    "cv_best_score": 0.800539236554562,
+    "training_time_seconds": 4.9893739223480225,
+    "test_accuracy": 0.7681159420289855,
+    "test_precision": 0.7851239669421488,
+    "test_recall": 0.9405940594059405,
+    "test_f1_score": 0.8558558558558559,
+    "test_auc_roc": 0.8274016590848274,
+    "n_samples_train": 551,
+    "n_samples_test": 138,
+    "n_features": 20
+  },
+  "all_metrics": {
+    "random_forest": {
+      "test_auc_roc": 0.8274016590848274,
+      "test_accuracy": 0.7681159420289855
+    },
+    "logistic_regression": {
+      "test_auc_roc": 0.8185710462938186,
+      "test_accuracy": 0.7971014492753623
+    },
+    "decision_tree": {
+      "test_auc_roc": 0.78003746320578,
+      "test_accuracy": 0.7681159420289855
+    }
+  }
+}

@@ -96,3 +96,171 @@ stages:
       hash: md5
       md5: 8b9ced64425c5b69bc396ce830efb23a
       size: 133
+  train_random_forest:
+    cmd: python -m fase3.modeling.train --model-name random_forest
+    deps:
+    - path: data/processed/X_test.csv
+      hash: md5
+      md5: 0319072970e475a1134d1c001df26326
+      size: 54410
+    - path: data/processed/X_train.csv
+      hash: md5
+      md5: b3e75a54904bd4152e637cb5c50d58a3
+      size: 216788
+    - path: data/processed/y_test.csv
+      hash: md5
+      md5: 20e641c66ac71ad25be79afbbc0e56c5
+      size: 564
+    - path: data/processed/y_train.csv
+      hash: md5
+      md5: a60727fe0824c3cfca88729a4684be23
+      size: 2216
+    - path: fase3/core/model_factory.py
+      hash: md5
+      md5: 774bb625810b65c1c227bdf8dde9dba4
+      size: 3548
+    - path: fase3/modeling/train.py
+      hash: md5
+      md5: 27789b5c0dba88f599bd002909449688
+      size: 18226
+    - path: fase3/pipeline_builder.py
+      hash: md5
+      md5: 168ff66dc6efbad3d04f92a85eb8e2dd
+      size: 5335
+    params:
+      params.yaml:
+        model.cv_folds: 5
+        model.random_state: 42
+    outs:
+    - path: models/random_forest_pipeline.pkl
+      hash: md5
+      md5: d18dc22a9ba0970ec93d622053c63a3c
+      size: 1143010
+    - path: reports/metrics/random_forest_metrics.json
+      hash: md5
+      md5: a82bebff59025d02c924b5aeafb85a3d
+      size: 351
+  train_logistic_regression:
+    cmd: python -m fase3.modeling.train --model-name logistic_regression
+    deps:
+    - path: data/processed/X_test.csv
+      hash: md5
+      md5: 0319072970e475a1134d1c001df26326
+      size: 54410
+    - path: data/processed/X_train.csv
+      hash: md5
+      md5: b3e75a54904bd4152e637cb5c50d58a3
+      size: 216788
+    - path: data/processed/y_test.csv
+      hash: md5
+      md5: 20e641c66ac71ad25be79afbbc0e56c5
+      size: 564
+    - path: data/processed/y_train.csv
+      hash: md5
+      md5: a60727fe0824c3cfca88729a4684be23
+      size: 2216
+    - path: fase3/core/model_factory.py
+      hash: md5
+      md5: 774bb625810b65c1c227bdf8dde9dba4
+      size: 3548
+    - path: fase3/modeling/train.py
+      hash: md5
+      md5: 27789b5c0dba88f599bd002909449688
+      size: 18226
+    - path: fase3/pipeline_builder.py
+      hash: md5
+      md5: 168ff66dc6efbad3d04f92a85eb8e2dd
+      size: 5335
+    params:
+      params.yaml:
+        model.cv_folds: 5
+        model.random_state: 42
+    outs:
+    - path: models/logistic_regression_pipeline.pkl
+      hash: md5
+      md5: 9470863861135cf509cd13da95285cc2
+      size: 2945
+    - path: reports/metrics/logistic_regression_metrics.json
+      hash: md5
+      md5: 498b6ce4840aa4ceb562a6a493e041e1
+      size: 351
+  train_decision_tree:
+    cmd: python -m fase3.modeling.train --model-name decision_tree
+    deps:
+    - path: data/processed/X_test.csv
+      hash: md5
+      md5: 0319072970e475a1134d1c001df26326
+      size: 54410
+    - path: data/processed/X_train.csv
+      hash: md5
+      md5: b3e75a54904bd4152e637cb5c50d58a3
+      size: 216788
+    - path: data/processed/y_test.csv
+      hash: md5
+      md5: 20e641c66ac71ad25be79afbbc0e56c5
+      size: 564
+    - path: data/processed/y_train.csv
+      hash: md5
+      md5: a60727fe0824c3cfca88729a4684be23
+      size: 2216
+    - path: fase3/core/model_factory.py
+      hash: md5
+      md5: 774bb625810b65c1c227bdf8dde9dba4
+      size: 3548
+    - path: fase3/modeling/train.py
+      hash: md5
+      md5: 27789b5c0dba88f599bd002909449688
+      size: 18226
+    - path: fase3/pipeline_builder.py
+      hash: md5
+      md5: 168ff66dc6efbad3d04f92a85eb8e2dd
+      size: 5335
+    params:
+      params.yaml:
+        model.cv_folds: 5
+        model.random_state: 42
+    outs:
+    - path: models/decision_tree_pipeline.pkl
+      hash: md5
+      md5: 9a9e8f9f1711c0db084858f8156ae1d6
+      size: 6659
+    - path: reports/metrics/decision_tree_metrics.json
+      hash: md5
+      md5: f372e57e7c5093ac94be2bd577138697
+      size: 350
+  select_best_model:
+    cmd: python -m fase3.modeling.select_best_model
+    deps:
+    - path: models/decision_tree_pipeline.pkl
+      hash: md5
+      md5: 9a9e8f9f1711c0db084858f8156ae1d6
+      size: 6659
+    - path: models/logistic_regression_pipeline.pkl
+      hash: md5
+      md5: 9470863861135cf509cd13da95285cc2
+      size: 2945
+    - path: models/random_forest_pipeline.pkl
+      hash: md5
+      md5: d18dc22a9ba0970ec93d622053c63a3c
+      size: 1143010
+    - path: reports/metrics/decision_tree_metrics.json
+      hash: md5
+      md5: f372e57e7c5093ac94be2bd577138697
+      size: 350
+    - path: reports/metrics/logistic_regression_metrics.json
+      hash: md5
+      md5: 498b6ce4840aa4ceb562a6a493e041e1
+      size: 351
+    - path: reports/metrics/random_forest_metrics.json
+      hash: md5
+      md5: a82bebff59025d02c924b5aeafb85a3d
+      size: 351
+    outs:
+    - path: models/best_model_pipeline.pkl
+      hash: md5
+      md5: d18dc22a9ba0970ec93d622053c63a3c
+      size: 1143010
+    - path: reports/metrics/best_model_selection.json
+      hash: md5
+      md5: 79104c122f444d0c550e99f09200ab7e
+      size: 989

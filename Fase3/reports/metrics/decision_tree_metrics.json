@@ -1,0 +1,12 @@
+{
+  "cv_best_score": 0.7140428551156519,
+  "training_time_seconds": 1.7749457359313965,
+  "test_accuracy": 0.7681159420289855,
+  "test_precision": 0.8285714285714286,
+  "test_recall": 0.8613861386138614,
+  "test_f1_score": 0.8446601941747572,
+  "test_auc_roc": 0.78003746320578,
+  "n_samples_train": 551,
+  "n_samples_test": 138,
+  "n_features": 20
+}
