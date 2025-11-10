@@ -375,6 +375,50 @@ cat reports/drift_monitoring_report.json | jq '.summary'
 - **Review pipeline**: Investigar causas y ajustar feature engineering
 - **Retrain immediately**: Reentrenar modelo con datos recientes
 
+### Ejemplo de output
+
+```
+============================================================
+DATA DRIFT MONITORING SYSTEM
+============================================================
+Loading reference data and model...
+✓ Loaded 200 reference samples
+✓ Loaded model: models/best_model_pipeline.pkl
+
+============================================================
+GENERATING DRIFT SCENARIOS
+============================================================
+✓ Generated 9 drift scenarios
+  - baseline: 200 samples
+  - mild_mean_shift: 200 samples
+  - severe_mean_shift: 200 samples
+  ...
+
+============================================================
+DETECTING DATA DRIFT
+============================================================
+📊 Analyzing scenario: severe_mean_shift
+  Drift detected: True
+  Features drifted: 20/20 (100%)
+  Severity: SEVERE
+  Top drifted features:
+    - duration: 0.856
+    - amount: 0.742
+    - age: 0.631
+
+============================================================
+MONITORING MODEL PERFORMANCE
+============================================================
+📊 Evaluating scenario: severe_mean_shift
+  AUC-ROC: 0.5654 (Δ -31.66%)
+  Severity: SEVERE
+  Action: URGENT: Retrain model immediately
+
+============================================================
+✅ DRIFT MONITORING COMPLETE!
+============================================================
+```
+
 ### Opciones avanzadas
 
 ```bash
@@ -651,7 +695,51 @@ docker push tuusuario/german-credit-api:1.0.0
 docker push tuusuario/german-credit-api:latest
 ```
 
-### Usar desde DockerHub
+### 📦 Imagen Pública del Equipo 34
+
+La imagen de este proyecto está disponible públicamente en DockerHub:
+
+**DockerHub:** https://hub.docker.com/r/alejandrodiaz10/german-credit-api
+
+#### Usar nuestra imagen
+
+```bash
+# Pull desde DockerHub
+docker pull alejandrodiaz10/german-credit-api:1.0.0
+
+# Run
+docker run -p 8000:8000 alejandrodiaz10/german-credit-api:1.0.0
+
+# Test API
+curl http://localhost:8000/health
+```
+
+#### Comandos usados para publicar
+
+```bash
+# 1. Login en DockerHub
+docker login
+
+# 2. Tag con nuestro usuario
+docker tag german-credit-api:1.0.0 alejandrodiaz10/german-credit-api:1.0.0
+
+# 3. Push a DockerHub
+docker push alejandrodiaz10/german-credit-api:1.0.0
+
+# 4. Verificar en DockerHub
+open https://hub.docker.com/r/alejandrodiaz10/german-credit-api
+```
+
+#### Información de la imagen
+
+- **Usuario DockerHub:** `alejandrodiaz10`
+- **Repositorio:** `german-credit-api`
+- **Tag:** `1.0.0`
+- **Tamaño:** ~500MB
+- **Python:** 3.11-slim
+- **Modelo:** Random Forest (best_model_pipeline.pkl)
+
+### Usar desde DockerHub (genérico)
 
 ```bash
 # Pull
