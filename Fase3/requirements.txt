@@ -26,7 +26,10 @@ seaborn==0.13.0
 # Testing tools
 pytest==7.4.3
 pytest-cov==4.1.0
-httpx==0.25.2
+pytest-html==4.1.1
+pytest-xdist==3.5.0  # Parallel execution
+httpx==0.25.2  # For FastAPI TestClient
+coverage==7.3.2
 
 # Data quality (optional)
 great-expectations==0.18.5

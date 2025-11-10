@@ -9,6 +9,7 @@ Proyecto completo de Machine Learning con MLOps para predicción de riesgo credi
 - [Pipeline Completo](#pipeline-completo)
 - [DVC - Versionado de Datos](#dvc---versionado-de-datos)
 - [MLflow - Tracking](#mlflow---tracking)
+- [Testing](#testing)
 - [API FastAPI](#api-fastapi)
 - [Docker](#docker)
 - [Comandos Útiles](#comandos-útiles)
@@ -47,8 +48,18 @@ Fase3/
 ├── reports/
 │   ├── figures/                  # Plots
 │   └── metrics/                  # JSON metrics (tracked by DVC)
+├── tests/                        # Test suite
+│   ├── conftest.py               # Shared fixtures
+│   ├── unit/                     # Unit tests
+│   │   ├── test_data_processor.py
+│   │   └── test_feature_engineer.py
+│   ├── integration/              # Integration tests
+│   │   └── test_integration.py
+│   └── api/                      # API tests
+│       └── test_api.py
 ├── dvc.yaml                      # DVC pipeline definition
 ├── params.yaml                   # Hyperparameters
+├── pytest.ini                    # Pytest configuration
 ├── Dockerfile                    # Container definition
 └── requirements.txt              # Python dependencies
 ```
@@ -263,6 +274,123 @@ print(runs[['metrics.test_auc_roc', 'params.model_name']])
 
 ---
 
+## 🧪 Testing
+
+### Suite de Tests Completa
+
+El proyecto incluye **59 tests automatizados** que cubren:
+- ✅ **25+ tests unitarios**: Componentes individuales
+- ✅ **10+ tests de integración**: Pipeline end-to-end
+- ✅ **15+ tests de API**: Endpoints FastAPI
+- ✅ **85% coverage**: Módulos core y API
+
+### Ejecutar todos los tests
+
+```bash
+# Comando principal (con coverage)
+pytest -v
+
+# Output esperado:
+# ===== 59 passed in 6.08s =====
+# Coverage: 84.51%
+```
+
+### Ejecutar tests por categoría
+
+```bash
+# Solo tests unitarios (rápidos)
+pytest -v -m unit
+
+# Solo tests de integración
+pytest -v -m integration
+
+# Solo tests de API
+pytest -v -m api
+
+# Excluir tests lentos
+pytest -v -m "not slow"
+```
+
+### Ver cobertura de código
+
+```bash
+# Coverage en terminal
+pytest -v --cov=fase3.core --cov=api --cov-report=term-missing
+
+# Generar reporte HTML
+pytest -v --cov=fase3.core --cov=api --cov-report=html
+
+# Abrir reporte en navegador
+open htmlcov/index.html  # macOS
+xdg-open htmlcov/index.html  # Linux
+start htmlcov/index.html  # Windows
+```
+
+### ¿Qué se está testeando?
+
+**Tests Unitarios** (`tests/unit/`)
+- `test_data_processor.py` (16 tests)
+  - Carga de datos, limpieza, validación
+  - Traducción de columnas, manejo de NaNs
+  - Validación de rangos y tipos de datos
+  
+- `test_feature_engineer.py` (16 tests)
+  - Train-test split, detección de outliers
+  - Feature scaling, guardado de datos
+  - Manejo de errores y edge cases
+
+**Tests de Integración** (`tests/integration/`)
+- `test_integration.py` (10 tests)
+  - Pipeline completo: raw → processed → predictions
+  - Entrenamiento con diferentes modelos
+  - Serialización y carga de modelos
+  - Reproducibilidad y performance mínima
+
+**Tests de API** (`tests/api/`)
+- `test_api.py` (17 tests)
+  - Endpoints: health, model-info, predict
+  - Validación de inputs (Pydantic schemas)
+  - Manejo de errores y casos edge
+  - Consistencia de predicciones
+
+### Estructura de fixtures
+
+Los fixtures reutilizables en `conftest.py` incluyen:
+- `sample_raw_data`: 100 muestras sintéticas
+- `sample_clean_data`: Datos limpios sin NaNs
+- `sample_train_test_split`: Split precomputado
+- `api_client`: Cliente TestClient para FastAPI
+- `temp_dirs`: Directorios temporales para tests
+
+### Comandos útiles adicionales
+
+```bash
+# Ejecutar test específico
+pytest tests/unit/test_data_processor.py::TestDataProcessor::test_load_data -v
+
+# Detener en primer fallo
+pytest -x
+
+# Mostrar prints en tests
+pytest -v -s
+
+# Ejecutar en paralelo (requiere pytest-xdist)
+pytest -v -n auto
+
+# Ver resumen de tests
+pytest --collect-only
+```
+
+### Configuración (pytest.ini)
+
+El archivo `pytest.ini` configura:
+- **Descubrimiento**: Solo archivos `test_*.py` en `tests/`
+- **Markers**: `unit`, `integration`, `api`, `slow`
+- **Coverage**: Mide `fase3.core` y `api` (threshold: 70%)
+- **Output**: Verbose, traceback corto, warnings deshabilitados
+
+---
+
 ## 🌐 API FastAPI
 
 ### Iniciar API localmente
@@ -392,22 +520,25 @@ dvc repro
 # 3. Verificar que se seleccionó best_model
 ls -lh models/best_model_pipeline.pkl
 
-# 4. Subir artefactos a S3
+# 4. Ejecutar tests
+pytest -v
+
+# 5. Subir artefactos a S3
 dvc push
 
-# 5. Probar API localmente
+# 6. Probar API localmente
 uvicorn api.main:app --reload
 
-# 6. Test endpoint
+# 7. Test endpoint
 curl http://localhost:8000/health
 
-# 7. Build Docker image
+# 8. Build Docker image
 docker build -t german-credit-api:1.0.0 .
 
-# 8. Test contenedor
+# 9. Test contenedor
 docker run -p 8000:8000 german-credit-api:1.0.0
 
-# 9. Push a DockerHub
+# 10. Push a DockerHub
 docker tag german-credit-api:1.0.0 tuusuario/german-credit-api:1.0.0
 docker push tuusuario/german-credit-api:1.0.0
 ```
@@ -434,6 +565,13 @@ docker push tuusuario/german-credit-api:1.0.0
 Cada modelo tiene 2 archivos JSON:
 1. `reports/metrics/{model}_metrics.json` → Para DVC
 2. `models/{model}_pipeline_metadata.json` → Para API
+
+### Sobre los tests
+
+- Los tests garantizan estabilidad del código
+- Coverage de 85% en módulos core
+- Tests de integración validan pipeline completo
+- Tests de API aseguran endpoints funcionales
 
 ---
 
