@@ -9,6 +9,7 @@ Proyecto completo de Machine Learning con MLOps para predicción de riesgo credi
 - [Pipeline Completo](#pipeline-completo)
 - [DVC - Versionado de Datos](#dvc---versionado-de-datos)
 - [MLflow - Tracking](#mlflow---tracking)
+- [Data Drift Monitoring](#-data-drift-monitoring)
 - [Testing](#testing)
 - [API FastAPI](#api-fastapi)
 - [Docker](#docker)
@@ -35,6 +36,12 @@ Fase3/
 │   ├── modeling/
 │   │   ├── train.py             # Training with MLflow
 │   │   └── select_best_model.py # Best model selection
+│   ├── monitoring/               # Data Drift Monitoring ⭐ NEW
+│   │   ├── drift_simulator.py   # Drift scenario generator
+│   │   ├── drift_detector.py    # Statistical drift detection
+│   │   ├── performance_monitor.py # Performance degradation
+│   │   ├── drift_visualizer.py  # Visualizations
+│   │   └── monitor_drift.py     # Main orchestrator
 │   ├── config.py                 # Configuration
 │   ├── dataset.py                # Data preparation
 │   ├── features.py               # Feature engineering
@@ -47,7 +54,9 @@ Fase3/
 │   └── best_model_pipeline.pkl   # Best model (for API)
 ├── reports/
 │   ├── figures/                  # Plots
-│   └── metrics/                  # JSON metrics (tracked by DVC)
+│   │   └── drift/                # Drift monitoring plots ⭐ NEW
+│   ├── metrics/                  # JSON metrics (tracked by DVC)
+│   └── drift_monitoring_report.json # Drift report ⭐ NEW
 ├── tests/                        # Test suite
 │   ├── conftest.py               # Shared fixtures
 │   ├── unit/                     # Unit tests
@@ -271,6 +280,154 @@ runs = mlflow.search_runs(experiment_names=['equipo34-german-credit'])
 print(runs[['metrics.test_auc_roc', 'params.model_name']])
 "
 ```
+
+---
+
+## 📉 Data Drift Monitoring
+
+### Sistema de Monitoreo de Drift
+
+Sistema completo para detectar cambios en la distribución de datos y degradación del modelo en producción.
+
+### Ejecutar monitoreo completo
+
+```bash
+# Comando principal (ejecuta todo el workflow)
+python3 -m fase3.monitoring.monitor_drift
+```
+
+### ¿Qué hace el monitoreo?
+
+El sistema ejecuta automáticamente:
+
+1. **Carga datos de referencia** (test set) y modelo entrenado
+2. **Genera 9 escenarios de drift**:
+   - `baseline`: Sin drift (control)
+   - `mild_mean_shift`: Desplazamiento ligero de medias (20%)
+   - `moderate_mean_shift`: Desplazamiento moderado (50%)
+   - `severe_mean_shift`: Desplazamiento severo (80%)
+   - `mild_variance_change`: Cambio en varianza (20%)
+   - `moderate_outliers`: Introducción de outliers (10%)
+   - `severe_missing`: Datos faltantes (30%)
+   - `mild_concept_drift`: Cambio X→y ligero (10%)
+   - `severe_concept_drift`: Cambio X→y severo (30%)
+
+3. **Detecta drift** usando tests estadísticos:
+   - **Kolmogorov-Smirnov (KS)**: p-value < 0.05
+   - **Population Stability Index (PSI)**: threshold 0.1
+   - **Jensen-Shannon Divergence**: distancia [0,1]
+
+4. **Monitorea performance**:
+   - Compara 5 métricas vs baseline
+   - Detecta degradación > 5%
+   - Genera alertas automáticas
+
+5. **Crea visualizaciones**:
+   - Dashboard completo
+   - Drift heatmap
+   - Comparación de distribuciones
+   - Gráficos de performance
+
+6. **Genera reporte JSON** con resultados estructurados
+
+### Outputs generados
+
+```bash
+reports/
+├── figures/drift/
+│   ├── drift_dashboard.png              # Panel completo de monitoreo
+│   ├── drift_heatmap_moderate.png       # Matriz de drift scores
+│   ├── feature_distributions_severe.png # Histogramas comparativos
+│   └── performance_comparison.png       # Métricas por escenario
+└── drift_monitoring_report.json         # Reporte estructurado
+```
+
+### Ver resultados
+
+```bash
+# Ver dashboard principal
+open reports/figures/drift/drift_dashboard.png  # macOS
+xdg-open reports/figures/drift/drift_dashboard.png  # Linux
+
+# Ver reporte JSON
+cat reports/drift_monitoring_report.json | jq .
+
+# Ver resumen de drift
+cat reports/drift_monitoring_report.json | jq '.summary'
+```
+
+### Interpretación de resultados
+
+**Niveles de Drift:**
+- **None** (0%): Sin cambios detectados ✅
+- **Minor** (1-25%): Cambios menores, monitorear ⚠️
+- **Moderate** (26-50%): Revisión recomendada 🔄
+- **Severe** (51%+): Acción urgente requerida 🚨
+
+**Niveles de Degradación (AUC-ROC):**
+- **< 5%**: Rendimiento aceptable ✅
+- **5-10%**: Degradación moderada, investigar 🔄
+- **> 10%**: Degradación severa, retrain urgente 🚨
+
+**Acciones recomendadas:**
+- **No action**: Continuar monitoreo normal
+- **Monitor closely**: Aumentar frecuencia de monitoreo
+- **Review pipeline**: Investigar causas y ajustar feature engineering
+- **Retrain immediately**: Reentrenar modelo con datos recientes
+
+### Opciones avanzadas
+
+```bash
+# Ver ayuda
+python3 -m fase3.monitoring.monitor_drift --help
+
+# Ejecutar sin visualizaciones (solo detección)
+python3 -m fase3.monitoring.monitor_drift --no-create-visualizations
+
+# Solo generar escenarios (sin análisis)
+python3 -m fase3.monitoring.monitor_drift --no-detect-drift --no-monitor-performance
+```
+
+### Componentes del sistema
+
+**Módulos principales:**
+- `drift_simulator.py`: Genera datos con diferentes tipos de drift
+- `drift_detector.py`: Tests estadísticos (KS, PSI, JS)
+- `performance_monitor.py`: Compara métricas vs baseline
+- `drift_visualizer.py`: Crea gráficos profesionales
+- `monitor_drift.py`: Orquesta el workflow completo
+
+**Tests estadísticos:**
+1. **Kolmogorov-Smirnov**: Mide máxima diferencia entre distribuciones acumulativas
+2. **PSI (Population Stability Index)**: Estándar en industria financiera (< 0.1 = estable)
+3. **Jensen-Shannon**: Distancia simétrica entre distribuciones [0,1]
+
+### Integración con workflow MLOps
+
+```bash
+# Workflow recomendado:
+
+# 1. Entrenar modelo
+dvc repro
+
+# 2. Monitorear drift
+python3 -m fase3.monitoring.monitor_drift
+
+# 3. Revisar resultados
+open reports/figures/drift/drift_dashboard.png
+
+# 4. Si drift severo detectado → retrain
+dvc repro
+
+# 5. Repetir monitoreo
+python3 -m fase3.monitoring.monitor_drift
+```
+
+### Frecuencia recomendada
+
+- **Desarrollo**: Después de cada entrenamiento
+- **Staging**: Semanalmente con datos de staging
+- **Producción**: Diariamente o semanalmente dependiendo del volumen
 
 ---
 
@@ -520,25 +677,32 @@ dvc repro
 # 3. Verificar que se seleccionó best_model
 ls -lh models/best_model_pipeline.pkl
 
-# 4. Ejecutar tests
+# 4. Monitorear drift ⭐ NEW
+python3 -m fase3.monitoring.monitor_drift
+
+# 5. Revisar resultados de drift
+open reports/figures/drift/drift_dashboard.png
+cat reports/drift_monitoring_report.json
+
+# 6. Ejecutar tests
 pytest -v
 
-# 5. Subir artefactos a S3
+# 7. Subir artefactos a S3
 dvc push
 
-# 6. Probar API localmente
+# 8. Probar API localmente
 uvicorn api.main:app --reload
 
-# 7. Test endpoint
+# 9. Test endpoint
 curl http://localhost:8000/health
 
-# 8. Build Docker image
+# 10. Build Docker image
 docker build -t german-credit-api:1.0.0 .
 
-# 9. Test contenedor
+# 11. Test contenedor
 docker run -p 8000:8000 german-credit-api:1.0.0
 
-# 10. Push a DockerHub
+# 12. Push a DockerHub
 docker tag german-credit-api:1.0.0 tuusuario/german-credit-api:1.0.0
 docker push tuusuario/german-credit-api:1.0.0
 ```
@@ -572,6 +736,14 @@ Cada modelo tiene 2 archivos JSON:
 - Coverage de 85% en módulos core
 - Tests de integración validan pipeline completo
 - Tests de API aseguran endpoints funcionales
+
+### Sobre el drift monitoring
+
+- Ejecutar después de cada entrenamiento en desarrollo
+- Ejecutar periódicamente en producción (diario/semanal)
+- AUC-ROC es la métrica más sensible para detectar impacto de drift
+- Concept drift (cambio X→y) degrada más que feature drift
+- Usar visualizaciones para comunicar drift a stakeholders
 
 ---
 

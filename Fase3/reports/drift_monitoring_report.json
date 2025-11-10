@@ -1,0 +1,446 @@
+{
+  "summary": {
+    "n_scenarios": 9,
+    "scenarios_with_drift": 9,
+    "scenarios_with_degradation": 8
+  },
+  "scenarios": {
+    "baseline": {
+      "drift": {
+        "detected": true,
+        "n_features_drifted": 1,
+        "drift_percentage": 5.0,
+        "drifted_features": [
+          "duration"
+        ]
+      },
+      "performance": {
+        "baseline": {
+          "accuracy": 0.7681159420289855,
+          "precision": 0.7851239669421488,
+          "recall": 0.9405940594059405,
+          "f1_score": 0.8558558558558559,
+          "auc_roc": 0.8274016590848274,
+          "n_samples": 138
+        },
+        "monitoring": {
+          "accuracy": 0.79,
+          "precision": 0.8268156424581006,
+          "recall": 0.9308176100628931,
+          "f1_score": 0.8757396449704142,
+          "auc_roc": 0.789538272741218,
+          "n_samples": 200
+        },
+        "degradation": {
+          "accuracy": 0.028490566037735938,
+          "precision": 0.05310202881505435,
+          "recall": -0.010393909301555704,
+          "f1_score": 0.023232637807536594,
+          "auc_roc": -0.045761796496141136
+        },
+        "degradation_detected": false,
+        "n_alerts": 0,
+        "alerts": []
+      }
+    },
+    "mild_mean_shift": {
+      "drift": {
+        "detected": true,
+        "n_features_drifted": 20,
+        "drift_percentage": 100.0,
+        "drifted_features": [
+          "checking_account",
+          "duration",
+          "credit_history",
+          "purpose",
+          "amount",
+          "savings_account",
+          "employment_duration",
+          "installment_rate",
+          "personal_status",
+          "other_debtors",
+          "residence_duration",
+          "property",
+          "age",
+          "other_installment_plans",
+          "housing",
+          "existing_credits",
+          "job",
+          "dependents",
+          "telephone",
+          "foreign_worker"
+        ]
+      },
+      "performance": {
+        "baseline": {
+          "accuracy": 0.7681159420289855,
+          "precision": 0.7851239669421488,
+          "recall": 0.9405940594059405,
+          "f1_score": 0.8558558558558559,
+          "auc_roc": 0.8274016590848274,
+          "n_samples": 138
+        },
+        "monitoring": {
+          "accuracy": 0.805,
+          "precision": 0.8260869565217391,
+          "recall": 0.9559748427672956,
+          "f1_score": 0.8862973760932945,
+          "auc_roc": 0.7692897683693819,
+          "n_samples": 200
+        },
+        "degradation": {
+          "accuracy": 0.048018867924528405,
+          "precision": 0.0521739130434782,
+          "recall": 0.0163522012578617,
+          "f1_score": 0.035568513119533546,
+          "auc_roc": -0.07023419650828588
+        },
+        "degradation_detected": true,
+        "n_alerts": 1,
+        "alerts": [
+          "AUC_ROC: -7.02% degradation (baseline: 0.8274, current: 0.7693)"
+        ]
+      }
+    },
+    "mild_variance_change": {
+      "drift": {
+        "detected": true,
+        "n_features_drifted": 20,
+        "drift_percentage": 100.0,
+        "drifted_features": [
+          "checking_account",
+          "duration",
+          "credit_history",
+          "purpose",
+          "amount",
+          "savings_account",
+          "employment_duration",
+          "installment_rate",
+          "personal_status",
+          "other_debtors",
+          "residence_duration",
+          "property",
+          "age",
+          "other_installment_plans",
+          "housing",
+          "existing_credits",
+          "job",
+          "dependents",
+          "telephone",
+          "foreign_worker"
+        ]
+      },
+      "performance": {
+        "baseline": {
+          "accuracy": 0.7681159420289855,
+          "precision": 0.7851239669421488,
+          "recall": 0.9405940594059405,
+          "f1_score": 0.8558558558558559,
+          "auc_roc": 0.8274016590848274,
+          "n_samples": 138
+        },
+        "monitoring": {
+          "accuracy": 0.795,
+          "precision": 0.8314606741573034,
+          "recall": 0.9308176100628931,
+          "f1_score": 0.8783382789317508,
+          "auc_roc": 0.781868384721583,
+          "n_samples": 200
+        },
+        "degradation": {
+          "accuracy": 0.035000000000000094,
+          "precision": 0.05901833234772322,
+          "recall": -0.010393909301555704,
+          "f1_score": 0.02626893643604559,
+          "auc_roc": -0.05503164498559
+        },
+        "degradation_detected": true,
+        "n_alerts": 1,
+        "alerts": [
+          "AUC_ROC: -5.50% degradation (baseline: 0.8274, current: 0.7819)"
+        ]
+      }
+    },
+    "moderate_mean_shift": {
+      "drift": {
+        "detected": true,
+        "n_features_drifted": 20,
+        "drift_percentage": 100.0,
+        "drifted_features": [
+          "checking_account",
+          "duration",
+          "credit_history",
+          "purpose",
+          "amount",
+          "savings_account",
+          "employment_duration",
+          "installment_rate",
+          "personal_status",
+          "other_debtors",
+          "residence_duration",
+          "property",
+          "age",
+          "other_installment_plans",
+          "housing",
+          "existing_credits",
+          "job",
+          "dependents",
+          "telephone",
+          "foreign_worker"
+        ]
+      },
+      "performance": {
+        "baseline": {
+          "accuracy": 0.7681159420289855,
+          "precision": 0.7851239669421488,
+          "recall": 0.9405940594059405,
+          "f1_score": 0.8558558558558559,
+          "auc_roc": 0.8274016590848274,
+          "n_samples": 138
+        },
+        "monitoring": {
+          "accuracy": 0.8,
+          "precision": 0.7989949748743719,
+          "recall": 1.0,
+          "f1_score": 0.888268156424581,
+          "auc_roc": 0.6596103696886025,
+          "n_samples": 200
+        },
+        "degradation": {
+          "accuracy": 0.04150943396226425,
+          "precision": 0.0176672837873578,
+          "recall": 0.06315789473684216,
+          "f1_score": 0.037871214348720934,
+          "auc_roc": -0.20279302990740375
+        },
+        "degradation_detected": true,
+        "n_alerts": 1,
+        "alerts": [
+          "AUC_ROC: -20.28% degradation (baseline: 0.8274, current: 0.6596)"
+        ]
+      }
+    },
+    "moderate_outliers": {
+      "drift": {
+        "detected": true,
+        "n_features_drifted": 1,
+        "drift_percentage": 5.0,
+        "drifted_features": [
+          "duration"
+        ]
+      },
+      "performance": {
+        "baseline": {
+          "accuracy": 0.7681159420289855,
+          "precision": 0.7851239669421488,
+          "recall": 0.9405940594059405,
+          "f1_score": 0.8558558558558559,
+          "auc_roc": 0.8274016590848274,
+          "n_samples": 138
+        },
+        "monitoring": {
+          "accuracy": 0.79,
+          "precision": 0.8268156424581006,
+          "recall": 0.9308176100628931,
+          "f1_score": 0.8757396449704142,
+          "auc_roc": 0.7674489952446695,
+          "n_samples": 200
+        },
+        "degradation": {
+          "accuracy": 0.028490566037735938,
+          "precision": 0.05310202881505435,
+          "recall": -0.010393909301555704,
+          "f1_score": 0.023232637807536594,
+          "auc_roc": -0.07245896014575365
+        },
+        "degradation_detected": true,
+        "n_alerts": 1,
+        "alerts": [
+          "AUC_ROC: -7.25% degradation (baseline: 0.8274, current: 0.7674)"
+        ]
+      }
+    },
+    "severe_mean_shift": {
+      "drift": {
+        "detected": true,
+        "n_features_drifted": 20,
+        "drift_percentage": 100.0,
+        "drifted_features": [
+          "checking_account",
+          "duration",
+          "credit_history",
+          "purpose",
+          "amount",
+          "savings_account",
+          "employment_duration",
+          "installment_rate",
+          "personal_status",
+          "other_debtors",
+          "residence_duration",
+          "property",
+          "age",
+          "other_installment_plans",
+          "housing",
+          "existing_credits",
+          "job",
+          "dependents",
+          "telephone",
+          "foreign_worker"
+        ]
+      },
+      "performance": {
+        "baseline": {
+          "accuracy": 0.7681159420289855,
+          "precision": 0.7851239669421488,
+          "recall": 0.9405940594059405,
+          "f1_score": 0.8558558558558559,
+          "auc_roc": 0.8274016590848274,
+          "n_samples": 138
+        },
+        "monitoring": {
+          "accuracy": 0.8,
+          "precision": 0.7989949748743719,
+          "recall": 1.0,
+          "f1_score": 0.888268156424581,
+          "auc_roc": 0.5654241448074858,
+          "n_samples": 200
+        },
+        "degradation": {
+          "accuracy": 0.04150943396226425,
+          "precision": 0.0176672837873578,
+          "recall": 0.06315789473684216,
+          "f1_score": 0.037871214348720934,
+          "auc_roc": -0.3166267693578349
+        },
+        "degradation_detected": true,
+        "n_alerts": 1,
+        "alerts": [
+          "AUC_ROC: -31.66% degradation (baseline: 0.8274, current: 0.5654)"
+        ]
+      }
+    },
+    "severe_missing": {
+      "drift": {
+        "detected": true,
+        "n_features_drifted": 1,
+        "drift_percentage": 5.0,
+        "drifted_features": [
+          "amount"
+        ]
+      },
+      "performance": {
+        "baseline": {
+          "accuracy": 0.7681159420289855,
+          "precision": 0.7851239669421488,
+          "recall": 0.9405940594059405,
+          "f1_score": 0.8558558558558559,
+          "auc_roc": 0.8274016590848274,
+          "n_samples": 138
+        },
+        "monitoring": {
+          "accuracy": 0.795,
+          "precision": 0.8314606741573034,
+          "recall": 0.9308176100628931,
+          "f1_score": 0.8783382789317508,
+          "auc_roc": 0.7399907961343765,
+          "n_samples": 200
+        },
+        "degradation": {
+          "accuracy": 0.035000000000000094,
+          "precision": 0.05901833234772322,
+          "recall": -0.010393909301555704,
+          "f1_score": 0.02626893643604559,
+          "auc_roc": -0.10564501773798037
+        },
+        "degradation_detected": true,
+        "n_alerts": 1,
+        "alerts": [
+          "AUC_ROC: -10.56% degradation (baseline: 0.8274, current: 0.7400)"
+        ]
+      }
+    },
+    "mild_concept_drift": {
+      "drift": {
+        "detected": true,
+        "n_features_drifted": 1,
+        "drift_percentage": 5.0,
+        "drifted_features": [
+          "duration"
+        ]
+      },
+      "performance": {
+        "baseline": {
+          "accuracy": 0.7681159420289855,
+          "precision": 0.7851239669421488,
+          "recall": 0.9405940594059405,
+          "f1_score": 0.8558558558558559,
+          "auc_roc": 0.8274016590848274,
+          "n_samples": 138
+        },
+        "monitoring": {
+          "accuracy": 0.76,
+          "precision": 0.7877094972067039,
+          "recall": 0.9337748344370861,
+          "f1_score": 0.8545454545454545,
+          "auc_roc": 0.7052304365454791,
+          "n_samples": 200
+        },
+        "degradation": {
+          "accuracy": -0.010566037735849005,
+          "precision": 0.003293149073801762,
+          "recall": -0.007249912861624209,
+          "f1_score": -0.00153110047846899,
+          "auc_roc": -0.14765648726699374
+        },
+        "degradation_detected": true,
+        "n_alerts": 1,
+        "alerts": [
+          "AUC_ROC: -14.77% degradation (baseline: 0.8274, current: 0.7052)"
+        ]
+      }
+    },
+    "severe_concept_drift": {
+      "drift": {
+        "detected": true,
+        "n_features_drifted": 1,
+        "drift_percentage": 5.0,
+        "drifted_features": [
+          "duration"
+        ]
+      },
+      "performance": {
+        "baseline": {
+          "accuracy": 0.7681159420289855,
+          "precision": 0.7851239669421488,
+          "recall": 0.9405940594059405,
+          "f1_score": 0.8558558558558559,
+          "auc_roc": 0.8274016590848274,
+          "n_samples": 138
+        },
+        "monitoring": {
+          "accuracy": 0.62,
+          "precision": 0.6368715083798883,
+          "recall": 0.912,
+          "f1_score": 0.75,
+          "auc_roc": 0.6020266666666666,
+          "n_samples": 200
+        },
+        "degradation": {
+          "accuracy": -0.19283018867924526,
+          "precision": -0.18882681564245815,
+          "recall": -0.03039999999999991,
+          "f1_score": -0.12368421052631581,
+          "auc_roc": -0.27238885726606304
+        },
+        "degradation_detected": true,
+        "n_alerts": 4,
+        "alerts": [
+          "ACCURACY: -19.28% degradation (baseline: 0.7681, current: 0.6200)",
+          "PRECISION: -18.88% degradation (baseline: 0.7851, current: 0.6369)",
+          "F1_SCORE: -12.37% degradation (baseline: 0.8559, current: 0.7500)",
+          "AUC_ROC: -27.24% degradation (baseline: 0.8274, current: 0.6020)"
+        ]
+      }
+    }
+  }
+}
