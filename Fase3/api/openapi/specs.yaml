@@ -1,0 +1,307 @@
+openapi: 3.1.0
+
+info:
+  title: German Credit Risk Prediction API
+  description: API for credit risk prediction using best trained model
+  version: 1.0.0
+
+paths:
+  /:
+    get:
+      summary: Root
+      description: Root endpoint with API information.
+      operationId: root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+
+  /health:
+    get:
+      summary: Health Check
+      description: Health check endpoint. Returns API status and model loading status.
+      operationId: health_check_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+
+  /model-info:
+    get:
+      summary: Model Info
+      description: Get information about the loaded model. Returns model metadata including training metrics and parameters.
+      operationId: model_info_model_info_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+
+  /predict:
+    post:
+      summary: Predict
+      description: |-
+        Make credit risk prediction.
+        Args: input_data: Credit application data
+        Returns: Prediction result with probability and risk label
+        Raises: HTTPException: If prediction fails
+      operationId: predict_predict_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictionInput'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionOutput'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+components:
+  schemas:
+    PredictionInput:
+      type: object
+      title: PredictionInput
+      description: Input schema for credit risk prediction. All features from the German Credit dataset.
+      required:
+        - checking_account
+        - credit_history
+        - savings_account
+        - duration
+        - amount
+        - installment_rate
+        - purpose
+        - employment_duration
+        - personal_status
+        - age
+        - other_debtors
+        - residence_duration
+        - property
+        - other_installment_plans
+        - housing
+        - existing_credits
+        - job
+        - dependents
+        - telephone
+        - foreign_worker
+      properties:
+        checking_account:
+          type: integer
+          title: Checking Account
+          description: Status of checking account
+          minimum: 1
+          maximum: 4
+        credit_history:
+          type: integer
+          title: Credit History
+          description: Credit history status
+          minimum: 0
+          maximum: 4
+        savings_account:
+          type: integer
+          title: Savings Account
+          description: Savings account/bonds
+          minimum: 1
+          maximum: 5
+        duration:
+          type: integer
+          title: Duration
+          description: Credit duration in months
+          minimum: 1
+          maximum: 72
+        amount:
+          type: number
+          title: Amount
+          description: Credit amount
+          minimum: 0
+        installment_rate:
+          type: integer
+          title: Installment Rate
+          description: Installment rate in % of disposable income
+          minimum: 1
+          maximum: 4
+        purpose:
+          type: integer
+          title: Purpose
+          description: Purpose of credit
+          minimum: 0
+          maximum: 10
+        employment_duration:
+          type: integer
+          title: Employment Duration
+          description: Present employment duration
+          minimum: 1
+          maximum: 5
+        personal_status:
+          type: integer
+          title: Personal Status
+          description: Personal status and sex
+          minimum: 1
+          maximum: 4
+        age:
+          type: integer
+          title: Age
+          description: Age in years
+          minimum: 18
+          maximum: 100
+        other_debtors:
+          type: integer
+          title: Other Debtors
+          description: Other debtors/guarantors
+          minimum: 1
+          maximum: 3
+        residence_duration:
+          type: integer
+          title: Residence Duration
+          description: Present residence duration
+          minimum: 1
+          maximum: 4
+        property:
+          type: integer
+          title: Property
+          description: Property type
+          minimum: 1
+          maximum: 4
+        other_installment_plans:
+          type: integer
+          title: Other Installment Plans
+          description: Other installment plans
+          minimum: 1
+          maximum: 3
+        housing:
+          type: integer
+          title: Housing
+          description: Housing type
+          minimum: 1
+          maximum: 3
+        existing_credits:
+          type: integer
+          title: Existing Credits
+          description: Number of existing credits at this bank
+          minimum: 1
+          maximum: 4
+        job:
+          type: integer
+          title: Job
+          description: Job type
+          minimum: 1
+          maximum: 4
+        dependents:
+          type: integer
+          title: Dependents
+          description: Number of people being liable to provide maintenance for
+          minimum: 1
+          maximum: 2
+        telephone:
+          type: integer
+          title: Telephone
+          description: Telephone registered under customer's name
+          minimum: 1
+          maximum: 2
+        foreign_worker:
+          type: integer
+          title: Foreign Worker
+          description: Foreign worker status
+          minimum: 1
+          maximum: 2
+      example:
+        checking_account: 1
+        credit_history: 2
+        savings_account: 1
+        duration: 24
+        amount: 5000
+        installment_rate: 2
+        purpose: 3
+        employment_duration: 3
+        personal_status: 2
+        age: 35
+        other_debtors: 1
+        residence_duration: 3
+        property: 2
+        other_installment_plans: 1
+        housing: 2
+        existing_credits: 1
+        job: 2
+        dependents: 1
+        telephone: 1
+        foreign_worker: 1
+
+    PredictionOutput:
+      type: object
+      title: PredictionOutput
+      description: Output schema for prediction response.
+      required:
+        - prediction
+        - probability
+        - risk_label
+        - model_version
+      properties:
+        prediction:
+          type: integer
+          title: Prediction
+          description: Predicted class (0=Bad Credit, 1=Good Credit)
+        probability:
+          type: number
+          title: Probability
+          description: Probability of Good Credit (class 1)
+          minimum: 0
+          maximum: 1
+        risk_label:
+          type: string
+          title: Risk Label
+          description: Human-readable risk label
+        model_version:
+          type: string
+          title: Model Version
+          description: Model version used for prediction
+      example:
+        prediction: 1
+        probability: 0.85
+        risk_label: Good Credit
+        model_version: random_forest
+
+    HTTPValidationError:
+      type: object
+      title: HTTPValidationError
+      properties:
+        detail:
+          type: array
+          title: Detail
+          items:
+            $ref: '#/components/schemas/ValidationError'
+
+    ValidationError:
+      type: object
+      title: ValidationError
+      required:
+        - loc
+        - msg
+        - type
+      properties:
+        loc:
+          type: array
+          title: Location
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type

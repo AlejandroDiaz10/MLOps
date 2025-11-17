@@ -1,0 +1,387 @@
+{
+   "openapi":"3.1.0",
+   "info":{
+      "title":"German Credit Risk Prediction API",
+      "description":"API for credit risk prediction using best trained model",
+      "version":"1.0.0"
+   },
+   "paths":{
+      "/":{
+         "get":{
+            "summary":"Root",
+            "description":"Root endpoint with API information.",
+            "operationId":"root__get",
+            "responses":{
+               "200":{
+                  "description":"Successful Response",
+                  "content":{
+                     "application/json":{
+                        "schema":{
+                           
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/health":{
+         "get":{
+            "summary":"Health Check",
+            "description":"Health check endpoint. Returns API status and model loading status.",
+            "operationId":"health_check_health_get",
+            "responses":{
+               "200":{
+                  "description":"Successful Response",
+                  "content":{
+                     "application/json":{
+                        "schema":{
+                           
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/model-info":{
+         "get":{
+            "summary":"Model Info",
+            "description":"Get information about the loaded model. Returns model metadata including training metrics and parameters.",
+            "operationId":"model_info_model_info_get",
+            "responses":{
+               "200":{
+                  "description":"Successful Response",
+                  "content":{
+                     "application/json":{
+                        "schema":{
+                           
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      },
+      "/predict":{
+         "post":{
+            "summary":"Predict",
+            "description":"Make credit risk prediction. Args: input_data: Credit application data Returns: Prediction result with probability and risk label Raises: HTTPException: If prediction fails",
+            "operationId":"predict_predict_post",
+            "requestBody":{
+               "content":{
+                  "application/json":{
+                     "schema":{
+                        "$ref":"#/components/schemas/PredictionInput"
+                     }
+                  }
+               },
+               "required":true
+            },
+            "responses":{
+               "200":{
+                  "description":"Successful Response",
+                  "content":{
+                     "application/json":{
+                        "schema":{
+                           "$ref":"#/components/schemas/PredictionOutput"
+                        }
+                     }
+                  }
+               },
+               "422":{
+                  "description":"Validation Error",
+                  "content":{
+                     "application/json":{
+                        "schema":{
+                           "$ref":"#/components/schemas/HTTPValidationError"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   },
+   "components":{
+      "schemas":{
+         "HTTPValidationError":{
+            "properties":{
+               "detail":{
+                  "items":{
+                     "$ref":"#/components/schemas/ValidationError"
+                  },
+                  "type":"array",
+                  "title":"Detail"
+               }
+            },
+            "type":"object",
+            "title":"HTTPValidationError"
+         },
+         "PredictionInput":{
+            "properties":{
+               "checking_account":{
+                  "type":"integer",
+                  "maximum":4,
+                  "minimum":1,
+                  "title":"Checking Account",
+                  "description":"Status of checking account"
+               },
+               "credit_history":{
+                  "type":"integer",
+                  "maximum":4,
+                  "minimum":0,
+                  "title":"Credit History",
+                  "description":"Credit history status"
+               },
+               "savings_account":{
+                  "type":"integer",
+                  "maximum":5,
+                  "minimum":1,
+                  "title":"Savings Account",
+                  "description":"Savings account/bonds"
+               },
+               "duration":{
+                  "type":"integer",
+                  "maximum":72,
+                  "minimum":1,
+                  "title":"Duration",
+                  "description":"Credit duration in months"
+               },
+               "amount":{
+                  "type":"number",
+                  "minimum":0,
+                  "title":"Amount",
+                  "description":"Credit amount"
+               },
+               "installment_rate":{
+                  "type":"integer",
+                  "maximum":4,
+                  "minimum":1,
+                  "title":"Installment Rate",
+                  "description":"Installment rate in % of disposable income"
+               },
+               "purpose":{
+                  "type":"integer",
+                  "maximum":10,
+                  "minimum":0,
+                  "title":"Purpose",
+                  "description":"Purpose of credit"
+               },
+               "employment_duration":{
+                  "type":"integer",
+                  "maximum":5,
+                  "minimum":1,
+                  "title":"Employment Duration",
+                  "description":"Present employment duration"
+               },
+               "personal_status":{
+                  "type":"integer",
+                  "maximum":4,
+                  "minimum":1,
+                  "title":"Personal Status",
+                  "description":"Personal status and sex"
+               },
+               "age":{
+                  "type":"integer",
+                  "maximum":100,
+                  "minimum":18,
+                  "title":"Age",
+                  "description":"Age in years"
+               },
+               "other_debtors":{
+                  "type":"integer",
+                  "maximum":3,
+                  "minimum":1,
+                  "title":"Other Debtors",
+                  "description":"Other debtors/guarantors"
+               },
+               "residence_duration":{
+                  "type":"integer",
+                  "maximum":4,
+                  "minimum":1,
+                  "title":"Residence Duration",
+                  "description":"Present residence duration"
+               },
+               "property":{
+                  "type":"integer",
+                  "maximum":4,
+                  "minimum":1,
+                  "title":"Property",
+                  "description":"Property type"
+               },
+               "other_installment_plans":{
+                  "type":"integer",
+                  "maximum":3,
+                  "minimum":1,
+                  "title":"Other Installment Plans",
+                  "description":"Other installment plans"
+               },
+               "housing":{
+                  "type":"integer",
+                  "maximum":3,
+                  "minimum":1,
+                  "title":"Housing",
+                  "description":"Housing type"
+               },
+               "existing_credits":{
+                  "type":"integer",
+                  "maximum":4,
+                  "minimum":1,
+                  "title":"Existing Credits",
+                  "description":"Number of existing credits at this bank"
+               },
+               "job":{
+                  "type":"integer",
+                  "maximum":4,
+                  "minimum":1,
+                  "title":"Job",
+                  "description":"Job type"
+               },
+               "dependents":{
+                  "type":"integer",
+                  "maximum":2,
+                  "minimum":1,
+                  "title":"Dependents",
+                  "description":"Number of people being liable to provide maintenance for"
+               },
+               "telephone":{
+                  "type":"integer",
+                  "maximum":2,
+                  "minimum":1,
+                  "title":"Telephone",
+                  "description":"Telephone registered under customer's name"
+               },
+               "foreign_worker":{
+                  "type":"integer",
+                  "maximum":2,
+                  "minimum":1,
+                  "title":"Foreign Worker",
+                  "description":"Foreign worker status"
+               }
+            },
+            "type":"object",
+            "required":[
+               "checking_account",
+               "credit_history",
+               "savings_account",
+               "duration",
+               "amount",
+               "installment_rate",
+               "purpose",
+               "employment_duration",
+               "personal_status",
+               "age",
+               "other_debtors",
+               "residence_duration",
+               "property",
+               "other_installment_plans",
+               "housing",
+               "existing_credits",
+               "job",
+               "dependents",
+               "telephone",
+               "foreign_worker"
+            ],
+            "title":"PredictionInput",
+            "description":"Input schema for credit risk prediction. All features from the German Credit dataset.",
+            "example":{
+               "age":35,
+               "amount":5000,
+               "checking_account":1,
+               "credit_history":2,
+               "dependents":1,
+               "duration":24,
+               "employment_duration":3,
+               "existing_credits":1,
+               "foreign_worker":1,
+               "housing":2,
+               "installment_rate":2,
+               "job":2,
+               "other_debtors":1,
+               "other_installment_plans":1,
+               "personal_status":2,
+               "property":2,
+               "purpose":3,
+               "residence_duration":3,
+               "savings_account":1,
+               "telephone":1
+            }
+         },
+         "PredictionOutput":{
+            "properties":{
+               "prediction":{
+                  "type":"integer",
+                  "title":"Prediction",
+                  "description":"Predicted class (0=Bad Credit, 1=Good Credit)"
+               },
+               "probability":{
+                  "type":"number",
+                  "maximum":1,
+                  "minimum":0,
+                  "title":"Probability",
+                  "description":"Probability of Good Credit (class 1)"
+               },
+               "risk_label":{
+                  "type":"string",
+                  "title":"Risk Label",
+                  "description":"Human-readable risk label"
+               },
+               "model_version":{
+                  "type":"string",
+                  "title":"Model Version",
+                  "description":"Model version used for prediction"
+               }
+            },
+            "type":"object",
+            "required":[
+               "prediction",
+               "probability",
+               "risk_label",
+               "model_version"
+            ],
+            "title":"PredictionOutput",
+            "description":"Output schema for prediction response.",
+            "example":{
+               "model_version":"random_forest",
+               "prediction":1,
+               "probability":0.85,
+               "risk_label":"Good Credit"
+            }
+         },
+         "ValidationError":{
+            "properties":{
+               "loc":{
+                  "items":{
+                     "anyOf":[
+                        {
+                           "type":"string"
+                        },
+                        {
+                           "type":"integer"
+                        }
+                     ]
+                  },
+                  "type":"array",
+                  "title":"Location"
+               },
+               "msg":{
+                  "type":"string",
+                  "title":"Message"
+               },
+               "type":{
+                  "type":"string",
+                  "title":"Error Type"
+               }
+            },
+            "type":"object",
+            "required":[
+               "loc",
+               "msg",
+               "type"
+            ],
+            "title":"ValidationError"
+         }
+      }
+   }
+}
